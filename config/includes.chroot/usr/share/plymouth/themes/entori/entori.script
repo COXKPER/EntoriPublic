@@ -1,0 +1,39 @@
+Image logo;
+logo = Image("logo.png");
+
+screen_width = Window.GetWidth();
+screen_height = Window.GetHeight();
+
+// Position logo at bottom center
+logo_x = (screen_width - logo.GetWidth()) / 2;
+logo_y = screen_height - logo.GetHeight() - 50; // 50px margin from bottom
+logo.SetPosition(logo_x, logo_y);
+logo.Show();
+
+// Loading dots
+text = "Loading";
+dot_count = 0;
+
+Function update_text() {
+    global text, dot_count;
+
+    dot_count = (dot_count + 1) % 4;
+    msg = text;
+    for (i = 0; i < dot_count; i++) {
+        msg += ".";
+    }
+    return msg;
+}
+
+loading_label = Label(update_text());
+loading_label.SetFont("Sans 20");
+loading_label.SetColor(255, 255, 255); // White
+loading_label_x = screen_width / 2 - loading_label.GetWidth() / 2;
+loading_label_y = logo_y + logo.GetHeight() + 10;
+loading_label.SetPosition(loading_label_x, loading_label_y);
+loading_label.Show();
+
+loop {
+    loading_label.SetText(update_text());
+    Sleep(0.5);
+}
