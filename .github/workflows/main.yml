@@ -1,0 +1,31 @@
+jobs:
+  build-iso:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:bookworm
+    name: Debian Live ISO Build
+
+    steps:
+      - name: Install dependencies
+        run: |
+          apt update
+          apt install -y git sudo live-build
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure live-build
+        run: |
+          lb config --debian-installer live \
+                    --distribution bookworm \
+                    --archive-areas "main contrib non-free"
+
+      - name: Build the ISO
+        run: |
+          lb build
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: debian-live-bookworm
+          path: live-image-amd64.hybrid.iso
