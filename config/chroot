@@ -26,11 +26,11 @@ LB_KEYRING_PACKAGES="debian-keyring"
 
 # $LB_LINUX_FLAVOURS: set kernel flavour to use
 # (Default: autodetected)
-LB_LINUX_FLAVOURS="generic"
+LB_LINUX_FLAVOURS="amd64"
 
 # $LB_LINUX_PACKAGES: set kernel packages to use
 # (Default: autodetected)
-LB_LINUX_PACKAGES="linux"
+LB_LINUX_PACKAGES="linux-image-amd64"
 
 # $LB_SECURITY: enable security updates
 # (Default: true)
