@@ -1,3 +1,10 @@
+name: Entori Workflow
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  
 jobs:
   build-iso:
     runs-on: ubuntu-latest
