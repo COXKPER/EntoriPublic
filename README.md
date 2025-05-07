@@ -1,5 +1,5 @@
 
-# **Entori Linux**
+![Entori](https://files.catbox.moe/19tmaa.png)
 
 **Open Source • Secure • Fast**
 
