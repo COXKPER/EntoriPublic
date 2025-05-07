@@ -1,0 +1,8 @@
+task-gnome-desktop
+gdm3
+runc
+curl
+jq
+lsb-release
+tar
+

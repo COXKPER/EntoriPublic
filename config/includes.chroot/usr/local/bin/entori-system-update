@@ -1,0 +1,38 @@
+#!/bin/bash
+set -e
+
+UPDATE_JSON_URL="https://entori.roarchive.dpdns.org/system.json"
+TMP_JSON="/tmp/system.json"
+
+echo "[Entori Updater] Fetching update metadata..."
+curl -sSL "$UPDATE_JSON_URL" -o "$TMP_JSON" || {
+    echo "[Entori Updater] Failed to download update info."
+    exit 1
+}
+
+LOCAL_CODENAME=$(lsb_release -c | awk '{print $2}')
+REMOTE_CODENAME=$(jq -r .latestcodename "$TMP_JSON")
+
+if [ "$LOCAL_CODENAME" != "$REMOTE_CODENAME" ]; then
+    echo "[Entori Updater] Codename mismatch: local=$LOCAL_CODENAME, remote=$REMOTE_CODENAME"
+    echo "[Entori Updater] Starting system update..."
+
+    SYSTEMFS_URL=$(jq -r .systemfs "$TMP_JSON")
+    WALLPAPER_URL=$(jq -r .wallpaper "$TMP_JSON")
+
+    echo "[Entori Updater] Downloading new system image..."
+    curl -sSL "$SYSTEMFS_URL" -o /tmp/systemfs.tar.gz
+
+    echo "[Entori Updater] Extracting system update..."
+    tar -xzf /tmp/systemfs.tar.gz -C /
+
+    echo "[Entori Updater] Updating wallpaper..."
+    curl -sSL "$WALLPAPER_URL" -o /usr/share/backgrounds/entori.png
+
+    echo "[Entori Updater] Running apt upgrade..."
+    apt update && apt full-upgrade -y
+
+    echo "[Entori Updater] Update complete. Please reboot."
+else
+    echo "[Entori Updater] System is up-to-date. Codename = $LOCAL_CODENAME"
+fi

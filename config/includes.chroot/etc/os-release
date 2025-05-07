@@ -1,0 +1,8 @@
+NAME="Entori Linux"
+VERSION="1.0 (nova)"
+ID=entori
+PRETTY_NAME="Entori Linux 1.0 (nova)"
+VERSION_ID="1.0"
+HOME_URL="https://entori.freecp.biz.id"
+SUPPORT_URL="https://entori.freecp.biz.id"
+BUG_REPORT_URL="https://entori.freecp.biz.id/issues"

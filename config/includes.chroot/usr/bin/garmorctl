@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+import socket, sys, json, os
+
+SOCK = "/var/run/garmored.sock"
+
+def send_request(request):
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
+        client.connect(SOCK)
+        client.send(json.dumps(request).encode())
+        resp = client.recv(4096)
+        return json.loads(resp.decode())
+
+def usage():
+    print("Usage:")
+    print("  garmorctl ping")
+    print("  garmorctl launch <file.garm>")
+    print("  garmorctl enable")
+    print("  garmorctl disable")
+    sys.exit(1)
+
+def main():
+    if len(sys.argv) < 2:
+        usage()
+
+    cmd = sys.argv[1]
+
+    if cmd == "ping":
+        print(send_request({"action": "ping"}))
+    elif cmd == "launch":
+        if len(sys.argv) != 3:
+            usage()
+        path = os.path.abspath(sys.argv[2])
+        print(send_request({"action": "launch", "path": path}))
+    elif cmd == "enable":
+        print(send_request({"action": "enable"}))
+    elif cmd == "disable":
+        print(send_request({"action": "disable"}))
+    else:
+        usage()
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+
+# For GNOME 3+ (uses gsettings)
+mkdir -p /etc/skel/.config/dconf
+dconf dump / > /etc/skel/.config/dconf/user
+
+# Apply background for new users
+echo '[org/gnome/desktop/background]' >> /etc/skel/.config/dconf/user
+echo "picture-uri='file:///usr/share/backgrounds/entori.png'" >> /etc/skel/.config/dconf/user

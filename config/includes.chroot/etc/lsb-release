@@ -1,0 +1,5 @@
+DISTRIB_ID=Entori
+DISTRIB_RELEASE=1.0
+DISTRIB_CODENAME=nova
+DISTRIB_DESCRIPTION="Entori Linux 1.0 (nova)"
+DISTRIB_URL=https://entori.freecp.biz.id
