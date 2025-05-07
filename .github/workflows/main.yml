@@ -25,7 +25,8 @@ jobs:
         run: |
           lb config --debian-installer live \
                     --distribution bookworm \
-                    --archive-areas "main contrib non-free"
+                    --archive-areas "main contrib non-free" \
+                    --initramfs live-boot
 
       - name: Build the ISO
         run: |
