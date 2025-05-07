@@ -85,7 +85,7 @@ LB_LOSETUP="losetup"
 
 # $LB_MODE: set distribution mode
 # (Default: ubuntu)
-LB_MODE="ubuntu"
+LB_MODE="debian"
 
 # $LB_SYSTEM: set system type
 # (Default: live)
