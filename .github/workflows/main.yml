@@ -26,8 +26,11 @@ jobs:
           lb config --debian-installer live \
                     --distribution bookworm \
                     --archive-areas "main contrib non-free" \
-                    --initramfs live-boot
-
+                    --initramfs live-boot \
+                    --mirror-bootstrap http://deb.debian.org/debian/ \
+                    --mirror-chroot http://deb.debian.org/debian/ \
+                    --mirror-binary http://deb.debian.org/debian/ 
+                    
       - name: Build the ISO
         run: |
           lb build
