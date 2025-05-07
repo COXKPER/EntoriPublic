@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Entori
+Description=Enterprise Linux
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/entori
+ScriptFile=/usr/share/plymouth/themes/entori/entori.script
