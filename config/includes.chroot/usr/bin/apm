@@ -1,0 +1,138 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use File::Path qw(make_path);
+use LWP::Simple;
+use JSON;
+use File::Basename;
+use IPC::System::Simple qw(system);
+use Fcntl qw(:flock);
+use Time::HiRes qw(sleep);
+
+# Config paths
+my $source_dir = "/etc/advancedpackagemanager/sources.d";
+my $lists_dir  = "/var/lib/apm/lists";
+my $cache_dir  = "/var/cache/apm/archives";
+my $lock_file  = "/var/lib/apm/lock";
+
+# Ensure required dirs exist
+make_path($lists_dir, $cache_dir);
+
+# Wait for .lock and acquire it
+sub acquire_lock {
+    open my $lock, ">>", $lock_file or die "Cannot open lock file: $!";
+    print "Waiting for lock...\n";
+    flock($lock, LOCK_EX) or die "Cannot lock: $!";
+    return $lock;
+}
+
+# Read and parse sources
+sub parse_sources {
+    my @sources;
+    for my $file (glob "$source_dir/*.list") {
+        open my $fh, '<', $file or next;
+        while (<$fh>) {
+            chomp;
+            next if /^\s*#/;
+            if (/^url\s+(\S+)\s+(\S+)\s+(\S+)/) {
+                push @sources, { base => $1, distro => $2, component => $3 };
+            }
+        }
+    }
+    return @sources;
+}
+
+# Download package lists from repos
+sub update {
+    my $lock = acquire_lock();
+    my @sources = parse_sources();
+    for my $src (@sources) {
+        my $url = "$src->{base}/dists/$src->{distro}/$src->{component}/Packages.json";
+        my $outfile = "$lists_dir/$src->{distro}-$src->{component}.json";
+        print "Fetching $url...\n";
+        getstore($url, $outfile);
+    }
+    print "Update complete.\n";
+    close $lock;
+}
+
+# Find package info in cached JSON lists
+sub find_package {
+    my ($pkg) = @_;
+    my @lists = glob "$lists_dir/*.json";
+    foreach my $file (@lists) {
+        open my $fh, '<', $file or next;
+        local $/; my $json = <$fh>;
+        my $data = eval { decode_json($json) };
+        next unless $data;
+        for my $entry (@$data) {
+            return $entry if $entry->{name} eq $pkg;
+        }
+    }
+    return;
+}
+
+# Download and install .deb via dpkg
+sub install {
+    my ($pkg) = @_;
+    my $lock = acquire_lock();
+    my $entry = find_package($pkg);
+    unless ($entry) {
+        print "Package '$pkg' not found.\n";
+        close $lock;
+        return;
+    }
+
+    my $deb_url = $entry->{url};
+    my $filename = basename($deb_url);
+    my $local_path = "$cache_dir/$filename";
+
+    print "Downloading $deb_url...\n";
+    getstore($deb_url, $local_path);
+    print "Installing $filename...\n";
+    system("dpkg", "-i", $local_path);
+    close $lock;
+}
+
+# Remove package via dpkg -r
+sub remove {
+    my ($pkg) = @_;
+    my $lock = acquire_lock();
+    print "Removing $pkg...\n";
+    system("dpkg", "-r", $pkg);
+    close $lock;
+}
+
+# Purge package via dpkg --purge
+sub purge {
+    my ($pkg) = @_;
+    my $lock = acquire_lock();
+    print "Purging $pkg...\n";
+    system("dpkg", "--purge", $pkg);
+    close $lock;
+}
+
+# Reinstall: remove then install
+sub reinstall {
+    my ($pkg) = @_;
+    my $lock = acquire_lock();
+    print "Reinstalling $pkg...\n";
+    system("dpkg", "-r", $pkg);
+    close $lock;
+    install($pkg);
+}
+
+# Main CLI dispatcher
+my ($cmd, @args) = @ARGV;
+if (!$cmd) {
+    die "Usage: apm {update|install|remove|purge|reinstall} <package>\n";
+}
+
+if    ($cmd eq 'update')     { update(); }
+elsif ($cmd eq 'install')    { install($args[0]); }
+elsif ($cmd eq 'remove')     { remove($args[0]); }
+elsif ($cmd eq 'purge')      { purge($args[0]); }
+elsif ($cmd eq 'reinstall')  { reinstall($args[0]); }
+else {
+    die "Unknown command '$cmd'\n";
+}

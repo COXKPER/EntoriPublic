@@ -5,4 +5,5 @@ curl
 jq
 lsb-release
 tar
-
+sudo
+libjson-perl
