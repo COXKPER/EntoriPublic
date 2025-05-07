@@ -9,7 +9,10 @@ jobs:
   build-iso:
     runs-on: ubuntu-latest
     container:
-      image: debian:bookworm
+      image: debian:latest
+      volumes:
+        - /proc:/proc
+      options: --privileged
     name: Debian Live ISO Build
 
     steps:
