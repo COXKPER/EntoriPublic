@@ -1,0 +1,12 @@
+firmware-linux
+firmware-linux-free
+firmware-linux-nonfree
+firmware-amd-graphics
+firmware-intel-sound
+firmware-intel-ibt
+xserver-xorg-video-intel
+xserver-xorg-video-amdgpu
+mesa-utils
+mesa-vulkan-drivers
+intel-media-va-driver-non-free
+libva2
