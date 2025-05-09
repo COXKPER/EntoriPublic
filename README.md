@@ -10,7 +10,7 @@
 
 ## 🔐 **Key Feature**
 
-**AppArmor**
+**AppArmor** - Default Security
 
 ---
 
