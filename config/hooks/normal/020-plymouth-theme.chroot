@@ -1,4 +1,4 @@
 #!/bin/bash
 set -e
 
-plymouth-set-default-theme -R entori
+plymouth-set-default-theme -R bgrt

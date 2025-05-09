@@ -1,8 +1,0 @@
-#!/bin/bash
-set -e
-
-update-mime-database /usr/share/mime
-update-desktop-database /usr/share/applications
-xdg-mime default garmor.desktop application/x-garmor
-
-systemctl enable garmord.service

@@ -1,5 +1,5 @@
 DISTRIB_ID=Entori
-DISTRIB_RELEASE=1.0
-DISTRIB_CODENAME=nova
-DISTRIB_DESCRIPTION="Entori Linux 1.0 (nova)"
+DISTRIB_RELEASE=2.0
+DISTRIB_CODENAME=spark
+DISTRIB_DESCRIPTION="Entori Linux 2.0 (spark)"
 DISTRIB_URL=https://entori.freecp.biz.id

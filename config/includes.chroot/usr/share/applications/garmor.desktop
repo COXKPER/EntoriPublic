@@ -1,7 +1,0 @@
-[Desktop Entry]
-Name=Garmor App Launcher
-Exec=/usr/local/bin/garmor-open.sh %f
-MimeType=application/x-garmor;
-Terminal=false
-Type=Application
-NoDisplay=true
