@@ -10,7 +10,7 @@
 
 ## 🔐 **Key Feature**
 
-**Guard Armor** – advanced protection for enhanced system security.
+**AppArmor**
 
 ---
 
