@@ -7,3 +7,4 @@ lsb-release
 tar
 sudo
 libjson-perl
+libfuse2
