@@ -21,6 +21,9 @@ jobs:
           apt update
           apt install -y git sudo live-build
 
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Create hello.txt test file
         run: echo "Hello, World! This is a test from GitHub Actions." > hello.txt
 
@@ -41,9 +44,6 @@ jobs:
           AWS_REGION: us-east-1 
           SOURCE_DIR: hello.txt 
           DEST_DIR: / 
-
-      - name: Checkout code
-        uses: actions/checkout@v4
 
       - name: Configure live-build
         run: |
