@@ -21,6 +21,27 @@ jobs:
           apt update
           apt install -y git sudo live-build
 
+      - name: Create hello.txt test file
+        run: echo "Hello, World! This is a test from GitHub Actions." > hello.txt
+
+      - name: Verify created file
+        run: |
+          ls -l hello.txt
+          cat hello.txt
+
+      - name: Deploy to S3(Test)
+        uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --acl public-read --delete # Example arguments: set public read, delete old files
+        env:
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }} 
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }} 
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
+          AWS_S3_ENDPOINT: https://03cdc26f0b7e233fd5507ad5fa3e9cf2.r2.cloudflarestorage.com
+          AWS_REGION: us-east-1 
+          SOURCE_DIR: hello.txt 
+          DEST_DIR: / 
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -39,6 +60,19 @@ jobs:
         run: |
           lb build
 
+      - name: Deploy to S3
+        uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --acl public-read --delete # Example arguments: set public read, delete old files
+        env:
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }} 
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }} 
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
+          AWS_S3_ENDPOINT: https://03cdc26f0b7e233fd5507ad5fa3e9cf2.r2.cloudflarestorage.com
+          AWS_REGION: us-east-1 
+          SOURCE_DIR: live-image-amd64.hybrid.iso 
+          DEST_DIR: / 
+      
       - name: Upload ISO artifact
         uses: actions/upload-artifact@v4
         with:

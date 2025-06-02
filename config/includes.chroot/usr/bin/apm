@@ -1,24 +1,25 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use File::Path qw(make_path);
+use File::Path qw(make_path remove_tree);
 use LWP::Simple;
 use JSON;
 use File::Basename;
 use IPC::System::Simple qw(system);
 use Fcntl qw(:flock);
 use Time::HiRes qw(sleep);
+use File::Copy;
 
 # Config paths
-my $source_dir = "/etc/advancedpackagemanager/sources.d";
-my $lists_dir  = "/var/lib/apm/lists";
-my $cache_dir  = "/var/cache/apm/archives";
-my $lock_file  = "/var/lib/apm/lock";
+my $source_dir  = "/etc/advancedpackagemanager/sources.d";
+my $lists_dir   = "/var/lib/apm/lists";
+my $cache_dir   = "/var/cache/apm/archives";
+my $lock_file   = "/var/lib/apm/lock";
+my $installed_dir = "/etc/advancedpackagemanager/installed";
 
-# Ensure required dirs exist
-make_path($lists_dir, $cache_dir);
+make_path($lists_dir, $cache_dir, $installed_dir);
 
-# Wait for .lock and acquire it
+# Acquire lock
 sub acquire_lock {
     open my $lock, ">>", $lock_file or die "Cannot open lock file: $!";
     print "Waiting for lock...\n";
@@ -26,7 +27,7 @@ sub acquire_lock {
     return $lock;
 }
 
-# Read and parse sources
+# Parse sources
 sub parse_sources {
     my @sources;
     for my $file (glob "$source_dir/*.list") {
@@ -42,12 +43,12 @@ sub parse_sources {
     return @sources;
 }
 
-# Download package lists from repos
+# Fetch updated package info
 sub update {
     my $lock = acquire_lock();
     my @sources = parse_sources();
     for my $src (@sources) {
-        my $url = "$src->{base}/dists/$src->{distro}/$src->{component}/Packages.json";
+        my $url = "$src->{base}/info";
         my $outfile = "$lists_dir/$src->{distro}-$src->{component}.json";
         print "Fetching $url...\n";
         getstore($url, $outfile);
@@ -56,73 +57,196 @@ sub update {
     close $lock;
 }
 
-# Find package info in cached JSON lists
-sub find_package {
-    my ($pkg) = @_;
+# Load package metadata
+sub load_metadata {
     my @lists = glob "$lists_dir/*.json";
+    my @packages;
     foreach my $file (@lists) {
         open my $fh, '<', $file or next;
         local $/; my $json = <$fh>;
         my $data = eval { decode_json($json) };
         next unless $data;
-        for my $entry (@$data) {
-            return $entry if $entry->{name} eq $pkg;
+        push @packages, @$data;
+    }
+    return @packages;
+}
+
+sub find_package {
+    my ($pkg) = @_;
+    my @packages = load_metadata();
+    foreach my $entry (@packages) {
+        return $entry if $entry->{name_package} eq $pkg;
+    }
+    return;
+}
+
+# Check if package is installed (and version match)
+sub is_installed {
+    my ($pkg) = @_;
+    my $dir = "$installed_dir/$pkg";
+    return 0 unless -d $dir;
+    my $meta_file = "$dir/meta.json";
+    return 0 unless -f $meta_file;
+    my $entry = find_package($pkg);
+    return 1 unless $entry && $entry->{version};
+
+    open my $fh, '<', $meta_file or return 0;
+    local $/; my $json = <$fh>;
+    my $meta = eval { decode_json($json) } || {};
+    return $meta->{version} eq $entry->{version};
+}
+
+# Get full URL to .apm file
+sub find_package_url {
+    my ($entry) = @_;
+    my @sources = parse_sources();
+    for my $src (@sources) {
+        if ($entry->{file} =~ m!^([^/]+)/!) {
+            return "$src->{base}/$entry->{file}" if $src->{base} =~ m!://!;
         }
     }
     return;
 }
 
-# Download and install .deb via dpkg
+# Run post-install triggers
+sub run_triggers {
+    my ($trigger_str) = @_;
+    for my $cmd (split /\s+/, $trigger_str) {
+        print "Running trigger: $cmd\n";
+        system($cmd) == 0 or warn "Trigger '$cmd' failed\n";
+    }
+}
+
+# Install package
 sub install {
     my ($pkg) = @_;
     my $lock = acquire_lock();
     my $entry = find_package($pkg);
+
     unless ($entry) {
         print "Package '$pkg' not found.\n";
         close $lock;
         return;
     }
 
-    my $deb_url = $entry->{url};
-    my $filename = basename($deb_url);
+    my $version = $entry->{version} || "unknown";
+
+    if (is_installed($pkg)) {
+        print "Package '$pkg' is already installed (version match).\n";
+        close $lock;
+        return;
+    }
+
+    print "Installing '$pkg'...\n";
+
+    my $url = find_package_url($entry);
+    my $deps = $entry->{deps} || "";
+    my $desc = $entry->{desc} || "No description";
+    my $trigger = $entry->{trigger} || "";
+    my $filename = basename($entry->{file});
     my $local_path = "$cache_dir/$filename";
 
-    print "Downloading $deb_url...\n";
-    getstore($deb_url, $local_path);
-    print "Installing $filename...\n";
-    system("dpkg", "-i", $local_path);
+    print "\n--- PACKAGE INFO ---\n";
+    print "Name        : $pkg\n";
+    print "Version     : $version\n";
+    print "Description : $desc\n";
+    print "File        : $filename\n";
+    print "Dependencies: $deps\n";
+    print "Triggers    : $trigger\n";
+
+    my $filesize = head($url);
+    printf("Size        : %.2f KB\n", $filesize / 1024) if $filesize;
+
+    print "Continue installation? [y/N] ";
+    chomp(my $confirm = <STDIN>);
+    if (lc($confirm) ne 'y') {
+        print "Installation cancelled.\n";
+        close $lock;
+        return;
+    }
+
+    # Install dependencies
+    for my $dep (split /\s+/, $deps) {
+        next if is_installed($dep);
+        print "Installing dependency '$dep'...\n";
+        install($dep);
+    }
+
+    print "Downloading $url...\n";
+    getstore($url, $local_path) == 200 or die "Failed to download $url\n";
+
+    # Extract archive
+    print "Extracting package to /...\n";
+    system("unzip -o '$local_path' -d /") == 0 or die "Extraction failed\n";
+
+    # Track installed files
+    my $filelist = `unzip -Z1 '$local_path'`;
+    my $install_dir = "$installed_dir/$pkg";
+    make_path($install_dir);
+    open my $fh, '>', "$install_dir/files.txt" or die "Can't write file list\n";
+    print $fh $filelist;
+    close $fh;
+
+    # Save metadata
+    open my $meta, '>', "$install_dir/meta.json" or die "Can't write metadata\n";
+    print $meta encode_json({ version => $version, trigger => $trigger });
+    close $meta;
+
+    # Run triggers
+    run_triggers($trigger) if $trigger;
+
+    print "Installed '$pkg'.\n";
     close $lock;
 }
 
-# Remove package via dpkg -r
+# Remove package
 sub remove {
     my ($pkg) = @_;
     my $lock = acquire_lock();
-    print "Removing $pkg...\n";
-    system("dpkg", "-r", $pkg);
+    my $pkg_dir = "$installed_dir/$pkg";
+
+    unless (-d $pkg_dir) {
+        print "Package '$pkg' is not installed.\n";
+        close $lock;
+        return;
+    }
+
+    print "Removing '$pkg'...\n";
+    my $manifest = "$pkg_dir/files.txt";
+    if (-f $manifest) {
+        open my $fh, '<', $manifest;
+        while (<$fh>) {
+            chomp;
+            my $path = "/$_";
+            unlink $path if -f $path || -l $path;
+            rmdir $path if -d $path;
+        }
+        close $fh;
+    }
+
+    remove_tree($pkg_dir);
+    print "Package '$pkg' removed.\n";
     close $lock;
 }
 
-# Purge package via dpkg --purge
 sub purge {
     my ($pkg) = @_;
-    my $lock = acquire_lock();
-    print "Purging $pkg...\n";
-    system("dpkg", "--purge", $pkg);
-    close $lock;
+    remove($pkg);
+    for my $file (glob "$cache_dir/*.apm") {
+        if ($file =~ /\Q$pkg\E/) {
+            unlink $file;
+            print "Purged cache file: $file\n";
+        }
+    }
 }
 
-# Reinstall: remove then install
 sub reinstall {
     my ($pkg) = @_;
-    my $lock = acquire_lock();
-    print "Reinstalling $pkg...\n";
-    system("dpkg", "-r", $pkg);
-    close $lock;
+    remove($pkg);
     install($pkg);
 }
 
-# Main CLI dispatcher
+# Dispatcher
 my ($cmd, @args) = @ARGV;
 if (!$cmd) {
     die "Usage: apm {update|install|remove|purge|reinstall} <package>\n";
@@ -136,3 +260,4 @@ elsif ($cmd eq 'reinstall')  { reinstall($args[0]); }
 else {
     die "Unknown command '$cmd'\n";
 }
+
