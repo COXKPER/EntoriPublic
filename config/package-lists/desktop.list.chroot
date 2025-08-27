@@ -8,3 +8,11 @@ tar
 sudo
 libjson-perl
 libfuse2
+systemd
+systemd-sysv
+gnome-shell
+gnome-settings-daemon
+gnome-control-center
+gnome-terminal
+gnome-session
+gnome-shell-extensions
