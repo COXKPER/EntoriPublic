@@ -16,3 +16,4 @@ gnome-control-center
 gnome-terminal
 gnome-session
 gnome-shell-extensions
+libnss-systemd
