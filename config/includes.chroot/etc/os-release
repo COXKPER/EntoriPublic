@@ -1,8 +1,8 @@
 NAME="Entori Linux"
-VERSION="3.4 (xeno)"
+VERSION="25.08 (mesa)"
 ID=entori
-PRETTY_NAME="Entori Linux 3.4 (xeno)"
-VERSION_ID="3.4"
+PRETTY_NAME="Entori Linux 25.08 (mesa)"
+VERSION_ID="25.08"
 HOME_URL="https://entori.freecp.biz.id"
 SUPPORT_URL="https://entori.freecp.biz.id"
 BUG_REPORT_URL="https://entori.freecp.biz.id/issues"

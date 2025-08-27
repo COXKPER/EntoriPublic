@@ -21,8 +21,8 @@ LB_BOOTSTRAP_FLAVOUR=""
 LB_BOOTSTRAP_KEYRING=""
 
 # $LB_DISTRIBUTION: select distribution to use
-# (Default: bookworm)
-LB_DISTRIBUTION="bookworm"
+# (Default: trixie)
+LB_DISTRIBUTION="trixie"
 
 # $LB_PARENT_DISTRIBUTION: select parent distribution to use
 # (Default: bookworm)
@@ -33,19 +33,19 @@ LB_PARENT_DISTRIBUTION="bookworm"
 LB_PARENT_DEBIAN_INSTALLER_DISTRIBUTION="bookworm"
 
 # $LB_PARENT_MIRROR_BOOTSTRAP: set parent mirror to bootstrap from
-# (Default: http://archive.ubuntu.com/ubuntu/)
+# (Default: http://deb.debian.org/debian/)
 LB_PARENT_MIRROR_BOOTSTRAP="http://deb.debian.org/debian/"
 
 # $LB_PARENT_MIRROR_CHROOT: set parent mirror to fetch packages from
-# (Default: http://archive.ubuntu.com/ubuntu/)
+# (Default: http://deb.debian.org/debian/)
 LB_PARENT_MIRROR_CHROOT="http://deb.debian.org/debian/"
 
 # $LB_PARENT_MIRROR_CHROOT_SECURITY: set security parent mirror to fetch packages from
-# (Default: http://security.ubuntu.com/ubuntu/)
+# (Default: http://security.debian.org/debian-security/)
 LB_PARENT_MIRROR_CHROOT_SECURITY="http://security.debian.org/debian-security/"
 
 # $LB_PARENT_MIRROR_CHROOT_VOLATILE: set volatile parent mirror to fetch packages from
-# (Default: http://archive.ubuntu.com/ubuntu/)
+# (Default: http://deb.debian.org/debian/)
 LB_PARENT_MIRROR_CHROOT_VOLATILE="http://deb.debian.org/debian/"
 
 # $LB_PARENT_MIRROR_CHROOT_BACKPORTS: set backports parent mirror to fetch packages from
@@ -53,39 +53,39 @@ LB_PARENT_MIRROR_CHROOT_VOLATILE="http://deb.debian.org/debian/"
 LB_PARENT_MIRROR_CHROOT_BACKPORTS="none"
 
 # $LB_PARENT_MIRROR_BINARY: set parent mirror which ends up in the image
-# (Default: http://archive.ubuntu.com/ubuntu/)
+# (Default: http://deb.debian.org/debian/)
 LB_PARENT_MIRROR_BINARY="http://deb.debian.org/debian/"
 
 # $LB_PARENT_MIRROR_BINARY_SECURITY: set security parent mirror which ends up in the image
-# (Default: http://security.ubuntu.com/ubuntu/)
+# (Default: http://security.debian.org/debian-security/)
 LB_PARENT_MIRROR_BINARY_SECURITY="http://security.debian.org/debian-security/"
 
 # $LB_PARENT_MIRROR_BINARY_VOLATILE: set volatile parent mirror which ends up in the image
-# (Default: http://archive.ubuntu.com/ubuntu/)
+# (Default: http://deb.debian.org/debian/)
 LB_PARENT_MIRROR_BINARY_VOLATILE="http://deb.debian.org/debian/"
 
-# $LB_PARENT_MIRROR_BINARY_BACKPORTS: set backports parent mirror to fetch packages from
+# $LB_PARENT_MIRROR_BINARY_BACKPORTS: set backports parent mirror which ends up in the image
 # (Default: none)
 LB_PARENT_MIRROR_BINARY_BACKPORTS="none"
 
 # $LB_PARENT_MIRROR_DEBIAN_INSTALLER: set debian-installer parent mirror
-# (Default: http://archive.ubuntu.com/ubuntu/)
+# (Default: http://deb.debian.org/debian/)
 LB_PARENT_MIRROR_DEBIAN_INSTALLER="http://deb.debian.org/debian/"
 
 # $LB_MIRROR_BOOTSTRAP: set mirror to bootstrap from
-# (Default: http://archive.ubuntu.com/ubuntu/)
+# (Default: http://deb.debian.org/debian/)
 LB_MIRROR_BOOTSTRAP="http://deb.debian.org/debian/"
 
 # $LB_MIRROR_CHROOT: set mirror to fetch packages from
-# (Default: http://archive.ubuntu.com/ubuntu/)
+# (Default: http://deb.debian.org/debian/)
 LB_MIRROR_CHROOT="http://deb.debian.org/debian/"
 
 # $LB_MIRROR_CHROOT_SECURITY: set security mirror to fetch packages from
-# (Default: http://security.ubuntu.com/ubuntu/)
+# (Default: http://security.debian.org/debian-security/)
 LB_MIRROR_CHROOT_SECURITY="http://security.debian.org/debian-security/"
 
 # $LB_MIRROR_CHROOT_VOLATILE: set volatile mirror to fetch packages from
-# (Default: http://archive.ubuntu.com/ubuntu/)
+# (Default: http://deb.debian.org/debian/)
 LB_MIRROR_CHROOT_VOLATILE="http://deb.debian.org/debian/"
 
 # $LB_MIRROR_CHROOT_BACKPORTS: set backports mirror to fetch packages from
@@ -93,15 +93,15 @@ LB_MIRROR_CHROOT_VOLATILE="http://deb.debian.org/debian/"
 LB_MIRROR_CHROOT_BACKPORTS="none"
 
 # $LB_MIRROR_BINARY: set mirror which ends up in the image
-# (Default: http://archive.ubuntu.com/ubuntu/)
+# (Default: http://deb.debian.org/debian/)
 LB_MIRROR_BINARY="http://deb.debian.org/debian/"
 
 # $LB_MIRROR_BINARY_SECURITY: set security mirror which ends up in the image
-# (Default: http://security.ubuntu.com/ubuntu/)
+# (Default: http://security.debian.org/debian-security/)
 LB_MIRROR_BINARY_SECURITY="http://security.debian.org/debian-security/"
 
 # $LB_MIRROR_BINARY_VOLATILE: set volatile mirror which ends up in the image
-# (Default: http://archive.ubuntu.com/ubuntu/)
+# (Default: http://deb.debian.org/debian/)
 LB_MIRROR_BINARY_VOLATILE="http://deb.debian.org/debian/"
 
 # $LB_MIRROR_BINARY_BACKPORTS: set backports mirror which ends up in the image
@@ -109,7 +109,7 @@ LB_MIRROR_BINARY_VOLATILE="http://deb.debian.org/debian/"
 LB_MIRROR_BINARY_BACKPORTS="none"
 
 # $LB_MIRROR_DEBIAN_INSTALLER: set debian-installer mirror
-# (Default: http://archive.ubuntu.com/ubuntu/)
+# (Default: http://deb.debian.org/debian/)
 LB_MIRROR_DEBIAN_INSTALLER="http://deb.debian.org/debian/"
 
 # $LB_ARCHIVES: enable available third-party archives
