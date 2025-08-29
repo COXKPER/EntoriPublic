@@ -111,7 +111,7 @@ LB_MEMTEST="memtest86+"
 
 # $LB_WIN32_LOADER: set win32-loader
 # (Default: true)
-LB_WIN32_LOADER="true"
+LB_WIN32_LOADER="false"
 
 # $LB_NET_ROOT_FILESYSTEM: set netboot filesystem
 # (Default: nfs)
