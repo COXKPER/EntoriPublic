@@ -3,14 +3,13 @@
 
 **Open Source • Secure • Fast**
 
-**Designer:** `Abidin`
-**Developer:** `Xeno Block`
+**Designer:** `Abidin`<br>
 
 ---
 
 ## 🔐 **Key Feature**
 
-**AppArmor** - Default Security
+**EntoriAI** - Ai Assistant 
 
 ---
 
