@@ -1,0 +1,15 @@
+[Unit]
+Description=Anvar Enterprise License Service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /opt/anvar/anvar.py
+ExecReload=/bin/kill -HUP $MAINPID
+PIDFile=/run/anvar.pid
+Restart=always
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
+

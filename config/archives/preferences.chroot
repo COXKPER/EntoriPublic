@@ -1,0 +1,3 @@
+Package: sysvinit-core
+Pin: release *
+Pin-Priority: -1
