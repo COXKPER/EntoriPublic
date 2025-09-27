@@ -10,6 +10,7 @@
 ## 🔐 **Key Feature**
 
 **EntoriAI** - Ai Assistant 
+**ENet** - Privacy Network 
 
 ---
 
