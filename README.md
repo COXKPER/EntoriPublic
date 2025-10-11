@@ -1,18 +1,9 @@
 
-![Entori](https://files.catbox.moe/19tmaa.png)
+![Entori](https://avm.fourvo.id/ENTORI%20(4).png)
 
 **Open Source • Secure • Fast**
 
 **Designer:** `Abidin`<br>
-
----
-
-## 🔐 **Key Feature**
-
-**EntoriAI** - Ai Assistant 
-**ENet** - Privacy Network 
-
----
 
 Special thanks to the **Imphnen Community** for their support and contributions.
 

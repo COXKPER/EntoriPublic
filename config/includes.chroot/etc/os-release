@@ -1,8 +1,8 @@
 NAME="Entori Linux"
-VERSION="25.12.1 (delta)"
+VERSION="25.12.2 (zee)"
 ID=entori
-PRETTY_NAME="Entori Linux 25.12.1 Beta (delta)"
-VERSION_ID="25.12.1"
+PRETTY_NAME="Entori Linux 25.12.2 Beta (zee)"
+VERSION_ID="25.12.2"
 HOME_URL="https://entori.freecp.biz.id"
 SUPPORT_URL="https://entori.freecp.biz.id"
 BUG_REPORT_URL="https://entori.freecp.biz.id"
