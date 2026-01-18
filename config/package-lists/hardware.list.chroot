@@ -1,6 +1,13 @@
-xserver-xorg-video-intel
-xserver-xorg-video-amdgpu
-mesa-utils
+### Xorg generic (Intel & AMD)
+xserver-xorg-video-modesetting
+
+### Mesa / graphics
 mesa-vulkan-drivers
+
+### VA-API
 intel-media-va-driver-non-free
 libva2
+
+pipewire
+pipewire-audio-client-libraries
+wireplumber
