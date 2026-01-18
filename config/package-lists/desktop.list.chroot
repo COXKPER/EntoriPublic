@@ -30,4 +30,3 @@ xserver-xorg-input-libinput
 xinit
 x11-xserver-utils
 xterm
-dconf
