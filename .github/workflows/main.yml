@@ -13,7 +13,7 @@ jobs:
       volumes:
         - /proc:/proc
       options: --privileged
-    name: Debian Live ISO Build
+    name: Entori Linux Live
 
     steps:
       - name: Install dependencies
@@ -43,5 +43,5 @@ jobs:
       - name: Upload ISO artifact
         uses: actions/upload-artifact@v4
         with:
-          name: debian-live-bookworm
+          name: entori-linux
           path: live-image-amd64.hybrid.iso
