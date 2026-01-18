@@ -9,5 +9,13 @@ tint2 &
 # network (optional)
 nm-tray &
 
+cbatticon -n -u 5 &
+
+blueman-applet &
+
+xbindkeys &
+
+pasystray &
+
 # avoid double start
 exit 0

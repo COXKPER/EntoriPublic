@@ -29,4 +29,7 @@ xserver-xorg-core
 xserver-xorg-input-libinput
 xinit
 x11-xserver-utils
-xterm
+cbatticon
+blueman
+xbindkeys
+pasystray
