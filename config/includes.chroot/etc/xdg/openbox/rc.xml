@@ -1,0 +1,18 @@
+<theme>
+  <name>Clearlooks</name>
+  <titleLayout>NLIMC</titleLayout>
+</theme>
+
+<desktops>
+  <number>1</number>
+  <firstdesk>1</firstdesk>
+</desktops>
+
+<focus>
+  <focusNew>yes</focusNew>
+  <raiseOnFocus>no</raiseOnFocus>
+</focus>
+
+<mouse>
+  <dragThreshold>1</dragThreshold>
+</mouse>

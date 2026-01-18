@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# restore wallpaper
+fanid &
+
+# panel
+tint2 &
+
+# network (optional)
+nm-tray &
+
+# avoid double start
+exit 0

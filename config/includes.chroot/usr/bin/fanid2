@@ -1,0 +1,153 @@
+#!/usr/bin/env python3
+import os
+import gi
+import socket
+import threading
+from pathlib import Path
+
+gi.require_version("Gtk", "3.0")
+gi.require_version("WebKit2", "4.0")
+
+from gi.repository import Gtk, Gdk, WebKit2, GLib
+
+# ================= CONFIG =================
+
+SUPPORTED_IMG = (".png", ".jpg", ".jpeg", ".webp")
+
+RUNTIME_DIR = os.environ.get(
+    "XDG_RUNTIME_DIR",
+    f"/tmp/live-{os.getuid()}"
+)
+os.makedirs(RUNTIME_DIR, exist_ok=True)
+
+SOCK_PATH = os.path.join(RUNTIME_DIR, "live.sock")
+
+# ================= WALL RESOLVER =================
+
+def find_wallpaper():
+    user_dir = Path.home() / ".config"
+    system_dir = Path("/etc/kereta")
+
+    # user HTML
+    p = user_dir / "wall.html"
+    if p.exists():
+        return ("html", p)
+
+    # user image
+    for ext in SUPPORTED_IMG:
+        p = user_dir / f"wall{ext}"
+        if p.exists():
+            return ("image", p)
+
+    # system HTML
+    p = system_dir / "wall.html"
+    if p.exists():
+        return ("html", p)
+
+    # system image
+    for ext in SUPPORTED_IMG:
+        p = system_dir / f"wall{ext}"
+        if p.exists():
+            return ("image", p)
+
+    return (None, None)
+
+# ================= MAIN WINDOW =================
+
+class DesktopWeb(Gtk.Window):
+    def __init__(self):
+        super().__init__()
+
+        self.set_decorated(False)
+        self.set_skip_taskbar_hint(True)
+        self.set_skip_pager_hint(True)
+        self.set_accept_focus(False)
+        self.set_focus_on_map(False)
+
+        self.connect("realize", self.on_realize)
+
+        self.load_wallpaper()
+        self.show_all()
+
+        threading.Thread(
+            target=self.control_server,
+            daemon=True
+        ).start()
+
+    # ---------- wallpaper loader ----------
+
+    def load_wallpaper(self):
+        self.foreach(lambda w: self.remove(w))
+
+        wall_type, wall_path = find_wallpaper()
+
+        if wall_type == "html":
+            self.view = WebKit2.WebView()
+            self.view.load_uri("file://" + str(wall_path))
+            self.add(self.view)
+
+        elif wall_type == "image":
+            img = Gtk.Image.new_from_file(str(wall_path))
+            img.set_halign(Gtk.Align.FILL)
+            img.set_valign(Gtk.Align.FILL)
+            self.add(img)
+
+        else:
+            self.override_background_color(
+                Gtk.StateFlags.NORMAL,
+                Gdk.RGBA(0, 0, 0, 1)
+            )
+
+        self.show_all()
+
+    def reload_wall(self):
+        print("Reloading wallpaper")
+        self.load_wallpaper()
+
+    # ---------- window setup ----------
+
+    def on_realize(self, *_):
+        gdk_win = self.get_window()
+        gdk_win.set_type_hint(Gdk.WindowTypeHint.DESKTOP)
+        gdk_win.set_keep_below(True)
+
+        display = Gdk.Display.get_default()
+        screen = display.get_default_screen()
+
+        self.move(0, 0)
+        self.resize(screen.get_width(), screen.get_height())
+
+    # ---------- control socket ----------
+
+    def control_server(self):
+        if os.path.exists(SOCK_PATH):
+            os.unlink(SOCK_PATH)
+
+        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
+            s.bind(SOCK_PATH)
+            os.chmod(SOCK_PATH, 0o600)
+            s.listen(5)
+
+            print("Control socket:", SOCK_PATH)
+
+            while True:
+                conn, _ = s.accept()
+                with conn:
+                    cmd = conn.recv(1024).decode().strip().lower()
+
+                    if cmd == "reload":
+                        GLib.idle_add(self.reload_wall)
+                        conn.sendall(b"OK reloaded\n")
+
+                    elif cmd == "exit":
+                        conn.sendall(b"OK exiting\n")
+                        GLib.idle_add(Gtk.main_quit)
+                        return
+
+                    else:
+                        conn.sendall(b"ERR unknown command\n")
+
+# ================= RUN =================
+
+win = DesktopWeb()
+Gtk.main()
