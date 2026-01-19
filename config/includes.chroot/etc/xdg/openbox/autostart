@@ -1,21 +1,13 @@
 #!/bin/sh
 
-# restore wallpaper
-fanid &
-
-# panel
 tint2 &
 
-# network (optional)
-nm-tray &
+(sleep 3 && pcmanfm --desktop) &
+(sleep 3 && nm-tray) &
+(sleep 3 && cbatticon -n -u 5) &
+(sleep 3 && blueman-applet) &
+(sleep 3 && xbindkeys) &
+(sleep 3 && pasystray) &
 
-cbatticon -n -u 5 &
 
-blueman-applet &
-
-xbindkeys &
-
-pasystray &
-
-# avoid double start
 exit 0
