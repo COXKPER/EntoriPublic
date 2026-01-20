@@ -1,13 +1,17 @@
 #!/bin/sh
+if test -z "$DBUS_SESSION_BUS_ADDRESS";
+then
+	eval $(dbus-launch --sh-syntax)
+fi
 
-tint2 &
+lxpanel &
 
-(sleep 3 && pcmanfm --desktop) &
-(sleep 3 && nm-tray) &
-(sleep 3 && cbatticon -n -u 5) &
-(sleep 3 && blueman-applet) &
-(sleep 3 && xbindkeys) &
-(sleep 3 && pasystray) &
+pcmanfm --desktop
+# (sleep 2 && nm-tray) &
+# (sleep 2 && cbatticon -n -u 5) &
+# (sleep 2 && blueman-applet) &
+# (sleep 2 && xbindkeys) &
+# (sleep 2 && pasystray) &
 
 
 exit 0
