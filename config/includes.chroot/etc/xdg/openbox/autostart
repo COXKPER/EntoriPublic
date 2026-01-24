@@ -7,8 +7,8 @@ fi
 lxpanel &
 
 pcmanfm --desktop
-# (sleep 2 && nm-tray) &
-# (sleep 2 && cbatticon -n -u 5) &
+(sleep 2 && nm-tray) &
+(sleep 2 && cbatticon -n -u 5) &
 # (sleep 2 && blueman-applet) &
 # (sleep 2 && xbindkeys) &
 # (sleep 2 && pasystray) &
