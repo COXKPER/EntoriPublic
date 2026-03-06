@@ -2,8 +2,7 @@ openbox
 obconf
 lxappearance
 
-greetd
-tuigreet
+lightdm
 
 xfce4-terminal
 
@@ -35,3 +34,4 @@ xbindkeys
 pasystray
 pcmanfm
 lxpanel
+flatpak
