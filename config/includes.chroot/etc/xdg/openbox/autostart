@@ -4,6 +4,8 @@ then
 	eval $(dbus-launch --sh-syntax)
 fi
 
+python3 /usr/essentials/menu.py &
+
 lxpanel &
 
 pcmanfm --desktop
