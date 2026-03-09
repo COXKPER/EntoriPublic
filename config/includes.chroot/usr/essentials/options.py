@@ -43,11 +43,11 @@ class PowerWindow(Gtk.Window):
 
     def shutdown(self, widget):
         if self.confirm("Shutdown computer?"):
-            subprocess.run(["loginctl", "poweroff"])
+            subprocess.run(["systemctl", "poweroff"])
 
     def restart(self, widget):
         if self.confirm("Restart computer?"):
-            subprocess.run(["loginctl", "reboot"])
+            subprocess.run(["systemctl", "reboot"])
 
     def logout(self, widget):
         if self.confirm("Logout from Openbox?"):

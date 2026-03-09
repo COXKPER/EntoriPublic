@@ -6,9 +6,6 @@ lightdm
 
 xfce4-terminal
 
-tint2
-nitrogen
-
 network-manager
 nm-tray
 
@@ -35,4 +32,5 @@ pasystray
 pcmanfm
 lxpanel
 flatpak
-rofi
+gnome-keyring
+seahorse
