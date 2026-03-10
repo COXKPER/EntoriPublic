@@ -147,16 +147,24 @@ def show_logo_menu(widget, event):
 
     run_item = Gtk.MenuItem(label="Run")
     power_item = Gtk.MenuItem(label="Power")
+    files_item = Gtk.MenuItem(label="Files")
+    terminal_item = Gtk.MenuItem(Label="Terminal")
 
     menu.append(run_item)
+    menu.append(files_item)
+    menu.append(terminal_item)
     menu.append(Gtk.SeparatorMenuItem())
     menu.append(power_item)
-
-    # actions
+    
+    terminal_item.connect("activate", lambda x:
+        subprocess.Popen(["x-terminal-emulator"])
+    )
+    files_item.connect("activate", lambda x:
+        subprocess.Popen(["xdg-open", os.path.expanduser("~")])
+    )
     run_item.connect("activate", lambda x:
         subprocess.Popen(["rofi","-show","drun"])
     )
-
     power_item.connect("activate", lambda x:
         subprocess.Popen(["python3", "/usr/essentials/options.py"])
     )
@@ -221,7 +229,7 @@ win.add(main)
 left=Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,spacing=10)
 main.pack_start(left,False,False,12)
 
-logo = Gtk.Label(label="")
+logo = Gtk.Label(label="☰")
 
 logo_event = Gtk.EventBox()
 logo_event.add(logo)
