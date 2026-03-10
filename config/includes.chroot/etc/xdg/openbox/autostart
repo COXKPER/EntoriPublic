@@ -3,6 +3,8 @@ if test -z "$DBUS_SESSION_BUS_ADDRESS";
 then
 	eval $(dbus-launch --sh-syntax)
 fi
+eval $(gnome-keyring-daemon --start --components=secrets,ssh,gpg)
+export SSH_AUTH_SOCK
 
 python3 /usr/essentials/menu.py &
 
