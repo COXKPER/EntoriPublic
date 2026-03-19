@@ -148,16 +148,21 @@ def show_logo_menu(widget, event):
     run_item = Gtk.MenuItem(label="Run")
     power_item = Gtk.MenuItem(label="Power")
     files_item = Gtk.MenuItem(label="Files")
-    terminal_item = Gtk.MenuItem(Label="Terminal")
+    terminal_item = Gtk.MenuItem(label="Terminal")
+    about_item = Gtk.MenuItem(label="About This Device")
 
     menu.append(run_item)
     menu.append(files_item)
     menu.append(terminal_item)
     menu.append(Gtk.SeparatorMenuItem())
     menu.append(power_item)
+    menu.append(about_item)
     
     terminal_item.connect("activate", lambda x:
         subprocess.Popen(["x-terminal-emulator"])
+    )
+    about_item.connect("activate", lambda x:
+        subprocess.Popen(["python3", "/usr/essentials/about.py"])
     )
     files_item.connect("activate", lambda x:
         subprocess.Popen(["xdg-open", os.path.expanduser("~")])

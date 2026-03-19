@@ -10,9 +10,10 @@ python3 /usr/essentials/menu.py &
 
 lxpanel &
 
-pcmanfm --desktop
+pcmanfm --desktop &
 (sleep 2 && nm-tray) &
 (sleep 2 && cbatticon -n -u 5) &
+# I Dont Know Why I Type These Code
 # (sleep 2 && blueman-applet) &
 # (sleep 2 && xbindkeys) &
 # (sleep 2 && pasystray) &
