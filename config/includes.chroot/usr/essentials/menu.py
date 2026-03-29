@@ -147,8 +147,8 @@ def show_logo_menu(widget, event):
 
     run_item = Gtk.MenuItem(label="Run")
     power_item = Gtk.MenuItem(label="Power")
-    files_item = Gtk.MenuItem(label="Files")
-    terminal_item = Gtk.MenuItem(label="Terminal")
+    files_item = Gtk.MenuItem(label="File Explorer")
+    terminal_item = Gtk.MenuItem(label="Shell Prompt")
 
     menu.append(run_item)
     menu.append(files_item)
