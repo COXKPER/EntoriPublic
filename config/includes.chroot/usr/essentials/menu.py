@@ -149,12 +149,14 @@ def show_logo_menu(widget, event):
     power_item = Gtk.MenuItem(label="Power")
     files_item = Gtk.MenuItem(label="File Explorer")
     terminal_item = Gtk.MenuItem(label="Shell Prompt")
+    about_item = Gtk.MenuItem(label="About Your Device")
 
     menu.append(run_item)
     menu.append(files_item)
     menu.append(terminal_item)
     menu.append(Gtk.SeparatorMenuItem())
     menu.append(power_item)
+    menu.append(about_item)
     
     terminal_item.connect("activate", lambda x:
         subprocess.Popen(["x-terminal-emulator"])
@@ -167,6 +169,9 @@ def show_logo_menu(widget, event):
     )
     power_item.connect("activate", lambda x:
         subprocess.Popen(["python3", "/usr/essentials/options.py"])
+    )
+    about_item.connect("activate", lambda x:
+        subprocess.Popen(["python3", "/usr/essentials/about.py"])
     )
 
     menu.show_all()
