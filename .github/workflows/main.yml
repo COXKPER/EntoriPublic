@@ -33,7 +33,8 @@ jobs:
                     --mirror-bootstrap http://deb.debian.org/debian/ \
                     --mirror-chroot http://deb.debian.org/debian/ \
                     --mirror-binary http://deb.debian.org/debian/ \
-                    --bootappend-live "boot=live components quiet splash" \
+                    --bootappend-live "boot=live hostname=entori components quiet splash" \
+                    --bootappend-install "quiet splash"\
                     --binary-images iso-hybrid
                     
       - name: Build the ISO

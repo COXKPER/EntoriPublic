@@ -1,8 +1,8 @@
 NAME="Entori"
-VERSION="26.04 (Sky Atic)"
+VERSION="26.05 (Sky Atic)"
 ID=entori
 PRETTY_NAME="Entori"
-VERSION_ID="26.04"
+VERSION_ID="26.05"
 HOME_URL="https://fourvo.id"
 SUPPORT_URL="https://fourvo.id"
 BUG_REPORT_URL="https://fourvo.id"

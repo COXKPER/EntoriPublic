@@ -2,3 +2,5 @@
 set -e
 
 plymouth-set-default-theme -R bgrt
+systemctl enable lightdm
+systemctl start lightdm

@@ -1,5 +1,6 @@
 ### Xorg generic (Intel & AMD)
 xserver-xorg-video-modesetting
+xserver-xorg-input-libinput
 
 ### Mesa / graphics
 mesa-vulkan-drivers
@@ -7,6 +8,7 @@ mesa-vulkan-drivers
 ### VA-API
 intel-media-va-driver-non-free
 libva2
+firmware-amd-graphics
 
 pipewire
 pipewire-audio-client-libraries
