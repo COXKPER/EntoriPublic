@@ -1,3 +1,4 @@
+#define WNCK_I_KNOW_THIS_IS_UNSTABLE
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 #include <gdk/gdkx.h>
@@ -250,12 +251,12 @@ static gboolean poll_media(gpointer data)
     if (!bus) { gtk_label_set_text(GTK_LABEL(media_label), ""); return G_SOURCE_CONTINUE; }
 
     GError *err = NULL;
-    GVariant *res = g_dbus_proxy_call_sync(bus,
+    GVariant *res = g_dbus_connection_call_sync(bus,
         "org.freedesktop.DBus",
         "/org/freedesktop/DBus",
         "org.freedesktop.DBus",
         "ListNames",
-        NULL, G_DBUS_CALL_FLAGS_NONE, 1000, NULL, &err);
+        NULL, NULL, G_DBUS_CALL_FLAGS_NONE, 1000, NULL, &err);
     if (!res) { g_object_unref(bus); gtk_label_set_text(GTK_LABEL(media_label), ""); return G_SOURCE_CONTINUE; }
 
     GVariantIter *iter;
@@ -265,12 +266,12 @@ static gboolean poll_media(gpointer data)
     while (g_variant_iter_loop(iter, "&s", &name)) {
         if (!g_str_has_prefix(name, "org.mpris.MediaPlayer2.")) continue;
 
-        GVariant *md = g_dbus_proxy_call_sync(bus, name,
+        GVariant *md = g_dbus_connection_call_sync(bus, name,
             "/org/mpris/MediaPlayer2",
             "org.freedesktop.DBus.Properties",
             "Get",
             g_variant_new("(ss)", "org.mpris.MediaPlayer2.Player", "Metadata"),
-            G_DBUS_CALL_FLAGS_NONE, 1000, NULL, NULL);
+            NULL, G_DBUS_CALL_FLAGS_NONE, 1000, NULL, NULL);
         if (!md) continue;
 
         GVariant *v = g_variant_get_child_value(md, 0);
