@@ -1,0 +1,9 @@
+# Compiled binaries
+config/includes.chroot/usr/essentials/about
+config/includes.chroot/usr/essentials/options
+config/includes.chroot/usr/essentials/menu
+
+# Build artifacts
+*.o
+*.iso
+live-image*
