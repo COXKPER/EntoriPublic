@@ -18,7 +18,7 @@ curl
 jq
 lsb-release
 libjson-perl
-libfuse2a
+libfuse2
 runc
 lua5.4
 blueman
