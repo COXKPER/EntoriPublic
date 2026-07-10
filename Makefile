@@ -1,23 +1,18 @@
-CC        = gcc
-GTK_CFLAGS = $(shell pkg-config --cflags gtk+-3.0)
-GTK_LIBS  = $(shell pkg-config --libs gtk+-3.0)
-WNK_CFLAGS = $(shell pkg-config --cflags libwnck-3.0)
-WNK_LIBS  = $(shell pkg-config --libs libwnck-3.0)
-BASE_FLAGS = -Wall -O2
+# Root Makefile — delegates to component Makefiles
 
-ESSDIR    = config/includes.chroot/usr/essentials
-ESS_BIN   = $(ESSDIR)/about $(ESSDIR)/options $(ESSDIR)/menu
+.PHONY: all clean ci essentials-all essentials-ci essentials-clean mola-ci mola-clean
 
-all: $(ESS_BIN)
+# --- Default: build Essentials locally ---
+all: essentials-all
 
-$(ESSDIR)/about: $(ESSDIR)/about.c
-	$(CC) $(GTK_CFLAGS) $(BASE_FLAGS) -o $@ $< $(GTK_LIBS)
+essentials-all:
+	$(MAKE) -C Essentials all
 
-$(ESSDIR)/options: $(ESSDIR)/options.c
-	$(CC) $(GTK_CFLAGS) $(BASE_FLAGS) -o $@ $< $(GTK_LIBS)
+essentials-ci:
+	$(MAKE) -C Essentials ci
 
-$(ESSDIR)/menu: $(ESSDIR)/menu.c
-	$(CC) $(GTK_CFLAGS) $(WNK_CFLAGS) $(BASE_FLAGS) -o $@ $< $(GTK_LIBS) $(WNK_LIBS)
+essentials-clean:
+	$(MAKE) -C Essentials clean
 
 # --- MoLa integration ---
 mola-ci:
@@ -26,11 +21,8 @@ mola-ci:
 mola-clean:
 	$(MAKE) -C MoLa clean
 
-# CI target: build everything and install MoLa into the chroot tree
-ci: $(ESS_BIN) mola-ci
+# --- CI target: build and install everything into the chroot tree ---
+ci: essentials-ci mola-ci
 
-clean: mola-clean
-	rm -f $(ESS_BIN)
-
-.PHONY: all clean ci mola-ci mola-clean
-
+# --- Clean all ---
+clean: essentials-clean mola-clean

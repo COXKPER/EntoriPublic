@@ -1,14 +1,15 @@
-# Compiled binaries
+# Compiled binaries (installed by make ci)
 config/includes.chroot/usr/essentials/about
 config/includes.chroot/usr/essentials/options
 config/includes.chroot/usr/essentials/menu
+config/includes.chroot/usr/essentials/keyver
 config/includes.chroot/usr/essentials/mola/
 
-# MoLa build
+# Build directories
+Essentials/build/
 MoLa/build/
 
 # Build artifacts
 *.o
 *.iso
 live-image*
-
