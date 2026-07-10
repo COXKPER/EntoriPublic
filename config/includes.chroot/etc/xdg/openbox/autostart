@@ -7,6 +7,7 @@ eval $(gnome-keyring-daemon --start --components=secrets,ssh,gpg)
 export SSH_AUTH_SOCK
 
 /usr/essentials/menu &
+python3 /usr/essentials/keyver &
 
 lxpanel &
 

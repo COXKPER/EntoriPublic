@@ -1,0 +1,64 @@
+{
+  "settings": {
+    "reload": "<cmd>+<shift>+r",
+    "startup_notification": true
+  },
+
+  "bindings": [
+    {
+      "hotkey": "<cmd>+<space>",
+      "command": ["rofi", "-show", "drun"],
+      "description": "Spotlight"
+    },
+    {
+      "hotkey": "<cmd>+t",
+      "command": ["gnome-terminal"],
+      "description": "Terminal"
+    },
+    {
+      "hotkey": "<cmd>+e",
+      "command": ["pcmanfm"],
+      "description": "File Manager"
+    },
+    {
+      "hotkey": "<cmd>+b",
+      "command": ["falkon"],
+      "description": "Browser"
+    },
+    {
+      "hotkey": "<cmd>+l",
+      "command": ["loginctl", "lock-session"],
+      "description": "Lock Screen"
+    },
+    {
+      "hotkey": "<cmd>+p",
+      "command": ["flameshot", "gui"],
+      "description": "Screenshot"
+    },
+    {
+      "hotkey": "<cmd>+<shift>+t",
+      "command": ["gnome-terminal", "--working-directory", "~"],
+      "description": "Home Terminal"
+    },
+    {
+      "hotkey": "<cmd>+d",
+      "command": ["pcmanfm", "~/Desktop"],
+      "description": "Desktop"
+    },
+    {
+      "hotkey": "<cmd>+h",
+      "command": ["pcmanfm", "~"],
+      "description": "Home"
+    },
+    {
+      "hotkey": "<cmd>+<shift>+e",
+      "command": ["pcmanfm", "/"],
+      "description": "Root"
+    },
+    {
+      "hotkey": "<cmd>+m",
+      "command": ["pavucontrol"],
+      "description": "Volume Control"
+    }
+  ]
+}
