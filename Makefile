@@ -19,7 +19,18 @@ $(ESSDIR)/options: $(ESSDIR)/options.c
 $(ESSDIR)/menu: $(ESSDIR)/menu.c
 	$(CC) $(GTK_CFLAGS) $(WNK_CFLAGS) $(BASE_FLAGS) -o $@ $< $(GTK_LIBS) $(WNK_LIBS)
 
-clean:
+# --- MoLa integration ---
+mola-ci:
+	$(MAKE) -C MoLa ci
+
+mola-clean:
+	$(MAKE) -C MoLa clean
+
+# CI target: build everything and install MoLa into the chroot tree
+ci: $(ESS_BIN) mola-ci
+
+clean: mola-clean
 	rm -f $(ESS_BIN)
 
-.PHONY: all clean
+.PHONY: all clean ci mola-ci mola-clean
+
