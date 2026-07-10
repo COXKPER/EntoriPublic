@@ -18,21 +18,21 @@ curl
 jq
 lsb-release
 libjson-perl
-libfuse2
+libfuse2a
 runc
+lua5.4
+blueman
 
 xserver-xorg-core
 xserver-xorg-input-libinput
 xinit
 x11-xserver-utils
-cbatticon
-blueman
-xbindkeys
-pasystray
 pcmanfm
-lxpanel
 flatpak
 gnome-keyring
 seahorse
 falkon
 flameshot
+libpulse0
+libnm0
+libdbusmenu-gtk3-4

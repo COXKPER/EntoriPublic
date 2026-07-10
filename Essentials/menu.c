@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include "sni_host.h"
 
 #define DOCK_DIR  ".config/favorit-anak-sd"
 #define DOCK_FILE "here.desktop"
@@ -22,6 +23,10 @@ static const char *app_dirs[] = {
 static GtkWidget *app_label;
 static GtkWidget *clock_label;
 static GtkWidget *media_label;
+static GtkWidget *battery_label;
+static GtkWidget *network_btn;
+static GtkWidget *volume_btn;
+static GtkWidget *tray_box;
 static WnckScreen *wnck_screen;
 static char *current_wm_class;
 static char *current_app_name;
@@ -231,6 +236,34 @@ static void on_active_changed(WnckScreen *s, WnckWindow *prev, gpointer data)
     update_active();
 }
 
+
+/* ---- New Indicators (Battery, Volume, Network) ---- */
+
+static gboolean poll_battery(gpointer data)
+{
+    FILE *f = fopen("/sys/class/power_supply/BAT0/capacity", "r");
+    if (f) {
+        int cap = 0;
+        if (fscanf(f, "%d", &cap) == 1) {
+            char *txt = g_strdup_printf("🔋\xEF\xB8\x8E %d%%", cap);
+            gtk_label_set_text(GTK_LABEL(battery_label), txt);
+            g_free(txt);
+        }
+        fclose(f);
+    } else {
+        gtk_label_set_text(GTK_LABEL(battery_label), "🔋\xEF\xB8\x8E --");
+    }
+    return G_SOURCE_CONTINUE;
+}
+
+static void launch_volume(GtkWidget *btn, gpointer data) {
+    g_spawn_command_line_async("/usr/essentials/volume", NULL);
+}
+
+static void launch_network(GtkWidget *btn, gpointer data) {
+    g_spawn_command_line_async("/usr/essentials/networkgui", NULL);
+}
+
 /* ---- Clock ---- */
 
 static gboolean tick_clock(gpointer data)
@@ -433,9 +466,30 @@ int main(int argc, char **argv)
     gtk_widget_set_hexpand(spacer, TRUE);
     gtk_box_pack_start(GTK_BOX(main_box), spacer, TRUE, TRUE, 0);
 
-    /* Right: media + clock */
+    /* Right: media + clock + indicators */
     GtkWidget *right = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 14);
     gtk_box_pack_end(GTK_BOX(main_box), right, FALSE, FALSE, 12);
+
+    /* Tray Container (SNI Host) */
+    tray_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2);
+    gtk_box_pack_start(GTK_BOX(right), tray_box, FALSE, FALSE, 0);
+    sni_host_init(tray_box);
+
+    /* Battery */
+    battery_label = gtk_label_new("🔋\xEF\xB8\x8E --");
+    gtk_box_pack_start(GTK_BOX(right), battery_label, FALSE, FALSE, 0);
+
+    /* Network */
+    network_btn = gtk_button_new_with_label("📶\xEF\xB8\x8E");
+    gtk_button_set_relief(GTK_BUTTON(network_btn), GTK_RELIEF_NONE);
+    g_signal_connect(network_btn, "clicked", G_CALLBACK(launch_network), NULL);
+    gtk_box_pack_start(GTK_BOX(right), network_btn, FALSE, FALSE, 0);
+
+    /* Volume */
+    volume_btn = gtk_button_new_with_label("🔊\xEF\xB8\x8E");
+    gtk_button_set_relief(GTK_BUTTON(volume_btn), GTK_RELIEF_NONE);
+    g_signal_connect(volume_btn, "clicked", G_CALLBACK(launch_volume), NULL);
+    gtk_box_pack_start(GTK_BOX(right), volume_btn, FALSE, FALSE, 0);
 
     media_label = gtk_label_new("");
     gtk_box_pack_start(GTK_BOX(right), media_label, FALSE, FALSE, 0);
@@ -453,6 +507,9 @@ int main(int argc, char **argv)
 
     g_timeout_add_seconds(3, poll_media, NULL);
     poll_media(NULL);
+
+    g_timeout_add_seconds(5, poll_battery, NULL);
+    poll_battery(NULL);
 
     /* DBus */
     setup_dbus();

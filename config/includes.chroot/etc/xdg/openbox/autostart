@@ -9,16 +9,7 @@ export SSH_AUTH_SOCK
 /usr/essentials/menu &
 /usr/essentials/keyver &
 /usr/essentials/mola/mola-desktop &
-
-lxpanel &
+lua /usr/core/init.lua &
 
 pcmanfm --desktop &
-(sleep 2 && nm-tray) &
-(sleep 2 && cbatticon -n -u 5) &
-# I Dont Know Why I Type These Code
-# (sleep 2 && blueman-applet) &
-# (sleep 2 && xbindkeys) &
-# (sleep 2 && pasystray) &
-
-
 exit 0
