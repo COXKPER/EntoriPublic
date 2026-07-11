@@ -149,6 +149,41 @@ static char *find_desktop_for(const char *wm_class, const char *app_name)
     return NULL;
 }
 
+/* ---- Menu positioning with forced edge collision ---- */
+
+/* gtk_menu_popup_at_pointer()'s built-in flip/slide logic isn't reliable for
+   an override-redirect dock-type window like ours, so position the menu
+   ourselves and force push_in so GTK clamps it back on-screen if it would
+   otherwise overflow a monitor edge. */
+static void position_menu_at_event(GtkMenu *menu, gint *x, gint *y, gboolean *push_in, gpointer user_data)
+{
+    GdkEventButton *ev = (GdkEventButton *)user_data;
+    GtkRequisition req;
+    gtk_widget_get_preferred_size(GTK_WIDGET(menu), NULL, &req);
+
+    GdkScreen *screen = gdk_event_get_screen((GdkEvent *)ev);
+    gint monitor_num = gdk_screen_get_monitor_at_point(screen, (gint)ev->x_root, (gint)ev->y_root);
+    GdkRectangle mon_geo;
+    gdk_screen_get_monitor_geometry(screen, monitor_num, &mon_geo);
+
+    gint px = (gint)ev->x_root;
+    gint py = (gint)ev->y_root;
+
+    if (px + req.width > mon_geo.x + mon_geo.width)
+        px = mon_geo.x + mon_geo.width - req.width;
+    if (px < mon_geo.x)
+        px = mon_geo.x;
+
+    if (py + req.height > mon_geo.y + mon_geo.height)
+        py = mon_geo.y + mon_geo.height - req.height;
+    if (py < mon_geo.y)
+        py = mon_geo.y;
+
+    *x = px;
+    *y = py;
+    *push_in = TRUE; /* collision: never let GTK render it off-screen */
+}
+
 /* ---- Logo menu callbacks ---- */
 
 static void launch_terminal(void)   { g_spawn_command_line_async("x-terminal-emulator", NULL); }
@@ -156,7 +191,7 @@ static void launch_files(void)
 {
     const char *home = getenv("HOME");
     if (!home) home = "/";
-    char *cmd = g_strdup_printf("xdg-open %s", home);
+    char *cmd = g_strdup_printf("pcmanfm %s", home);
     g_spawn_command_line_async(cmd, NULL);
     g_free(cmd);
 }
@@ -191,7 +226,9 @@ static gboolean on_logo_press(GtkWidget *w, GdkEventButton *ev, gpointer data)
     g_signal_connect(menu, "selection-done", G_CALLBACK(gtk_widget_destroy), NULL);
 
     gtk_widget_show_all(menu);
-    gtk_menu_popup_at_pointer(GTK_MENU(menu), (GdkEvent *)ev);
+    G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+    gtk_menu_popup(GTK_MENU(menu), NULL, NULL, position_menu_at_event, ev, ev->button, ev->time);
+    G_GNUC_END_IGNORE_DEPRECATIONS
     return TRUE;
 }
 
@@ -406,7 +443,9 @@ static gboolean on_app_label_press(GtkWidget *w, GdkEventButton *ev, gpointer da
     g_signal_connect(menu, "selection-done", G_CALLBACK(gtk_widget_destroy), NULL);
 
     gtk_widget_show_all(menu);
-    gtk_menu_popup_at_pointer(GTK_MENU(menu), (GdkEvent *)ev);
+    G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+    gtk_menu_popup(GTK_MENU(menu), NULL, NULL, position_menu_at_event, ev, ev->button, ev->time);
+    G_GNUC_END_IGNORE_DEPRECATIONS
     return TRUE;
 }
 
