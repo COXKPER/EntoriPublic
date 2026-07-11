@@ -1,6 +1,7 @@
 openbox
 obconf
 lxappearance
+lxappearance-obconf
 picom
 xserver-xorg-input-synaptics
 
