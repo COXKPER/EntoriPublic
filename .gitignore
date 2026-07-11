@@ -4,6 +4,8 @@ config/includes.chroot/usr/essentials/options
 config/includes.chroot/usr/essentials/menu
 config/includes.chroot/usr/essentials/keyver
 config/includes.chroot/usr/essentials/mola/
+config/includes.chroot/usr/essentials/volume
+config/includes.chroot/usr/essentials/networkgui
 
 # Build directories
 Essentials/build/

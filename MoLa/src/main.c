@@ -56,11 +56,9 @@ static void load_pinned_apps(Dock *dock) {
             const char *icon;
             const char *desktop;
         } defaults[] = {
-            {"firefox",     "Firefox",       "firefox",                "firefox.desktop"},
-            {"files",       "Files",         "system-file-manager",    "org.gnome.Nautilus.desktop"},
-            {"terminal",    "Terminal",       "utilities-terminal",     "org.gnome.Terminal.desktop"},
-            {"text-editor", "Text Editor",   "accessories-text-editor","org.gnome.TextEditor.desktop"},
-            {"settings",    "Settings",      "preferences-system",     "gnome-control-center.desktop"},
+            {"falkon",     "Falkon",       "falkon",                "com.kde.falkon.desktop"},
+            {"xfce4-terminal", "Xfce Terminal", "org.xfce.terminal", "xfce4-terminal.desktop"},
+            {"pcmanfm",    "PCMan File Manager",  "system-file-manager",     "pcmanfm.desktop"},
         };
 
         int n = (int)(sizeof(defaults) / sizeof(defaults[0]));

@@ -5,7 +5,8 @@ then
 fi
 eval $(gnome-keyring-daemon --start --components=secrets,ssh,gpg)
 export SSH_AUTH_SOCK
-
+xcfe4-polkit &
+picom &
 /usr/essentials/menu &
 /usr/essentials/keyver &
 /usr/essentials/mola/mola-desktop &

@@ -2,6 +2,7 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 #include <gdk/gdkx.h>
+#include <X11/Xatom.h>
 #include <libwnck/libwnck.h>
 #include <gio/gio.h>
 #include <stdio.h>
@@ -22,7 +23,10 @@ static const char *app_dirs[] = {
 
 static GtkWidget *app_label;
 static GtkWidget *clock_label;
+static GtkWidget *media_box;
+static GtkWidget *media_icon;
 static GtkWidget *media_label;
+static GtkWidget *battery_icon;
 static GtkWidget *battery_label;
 static GtkWidget *network_btn;
 static GtkWidget *volume_btn;
@@ -184,6 +188,7 @@ static gboolean on_logo_press(GtkWidget *w, GdkEventButton *ev, gpointer data)
     g_signal_connect(run_i, "activate", G_CALLBACK(launch_run), NULL);
     g_signal_connect(power_i, "activate", G_CALLBACK(launch_power), NULL);
     g_signal_connect(about_i, "activate", G_CALLBACK(launch_about), NULL);
+    g_signal_connect(menu, "selection-done", G_CALLBACK(gtk_widget_destroy), NULL);
 
     gtk_widget_show_all(menu);
     gtk_menu_popup_at_pointer(GTK_MENU(menu), (GdkEvent *)ev);
@@ -237,6 +242,24 @@ static void on_active_changed(WnckScreen *s, WnckWindow *prev, gpointer data)
 }
 
 
+/* ---- Themed icon helpers (Adwaita / hicolor icon theme) ---- */
+
+static GtkWidget *themed_icon(const char *icon_name)
+{
+    GtkWidget *img = gtk_image_new_from_icon_name(icon_name, GTK_ICON_SIZE_MENU);
+    gtk_image_set_pixel_size(GTK_IMAGE(img), 16);
+    return img;
+}
+
+static GtkWidget *themed_icon_button(const char *icon_name, GCallback cb)
+{
+    GtkWidget *btn = gtk_button_new();
+    gtk_button_set_relief(GTK_BUTTON(btn), GTK_RELIEF_NONE);
+    gtk_container_add(GTK_CONTAINER(btn), themed_icon(icon_name));
+    g_signal_connect(btn, "clicked", cb, NULL);
+    return btn;
+}
+
 /* ---- New Indicators (Battery, Volume, Network) ---- */
 
 static gboolean poll_battery(gpointer data)
@@ -245,13 +268,25 @@ static gboolean poll_battery(gpointer data)
     if (f) {
         int cap = 0;
         if (fscanf(f, "%d", &cap) == 1) {
-            char *txt = g_strdup_printf("🔋\xEF\xB8\x8E %d%%", cap);
+            const char *icon_name;
+            if (cap >= 90)      icon_name = "battery-full-symbolic";
+            else if (cap >= 60) icon_name = "battery-good-symbolic";
+            else if (cap >= 30) icon_name = "battery-low-symbolic";
+            else if (cap >= 10) icon_name = "battery-caution-symbolic";
+            else                icon_name = "battery-empty-symbolic";
+
+            gtk_image_set_from_icon_name(GTK_IMAGE(battery_icon), icon_name, GTK_ICON_SIZE_MENU);
+            gtk_image_set_pixel_size(GTK_IMAGE(battery_icon), 16);
+
+            char *txt = g_strdup_printf("%d%%", cap);
             gtk_label_set_text(GTK_LABEL(battery_label), txt);
             g_free(txt);
         }
         fclose(f);
     } else {
-        gtk_label_set_text(GTK_LABEL(battery_label), "🔋\xEF\xB8\x8E --");
+        gtk_image_set_from_icon_name(GTK_IMAGE(battery_icon), "battery-missing-symbolic", GTK_ICON_SIZE_MENU);
+        gtk_image_set_pixel_size(GTK_IMAGE(battery_icon), 16);
+        gtk_label_set_text(GTK_LABEL(battery_label), "--");
     }
     return G_SOURCE_CONTINUE;
 }
@@ -281,7 +316,7 @@ static gboolean tick_clock(gpointer data)
 static gboolean poll_media(gpointer data)
 {
     GDBusConnection *bus = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
-    if (!bus) { gtk_label_set_text(GTK_LABEL(media_label), ""); return G_SOURCE_CONTINUE; }
+    if (!bus) { gtk_widget_hide(media_box); return G_SOURCE_CONTINUE; }
 
     GError *err = NULL;
     GVariant *res = g_dbus_connection_call_sync(bus,
@@ -290,7 +325,7 @@ static gboolean poll_media(gpointer data)
         "org.freedesktop.DBus",
         "ListNames",
         NULL, NULL, G_DBUS_CALL_FLAGS_NONE, 1000, NULL, &err);
-    if (!res) { g_object_unref(bus); gtk_label_set_text(GTK_LABEL(media_label), ""); return G_SOURCE_CONTINUE; }
+    if (!res) { g_clear_error(&err); g_object_unref(bus); gtk_widget_hide(media_box); return G_SOURCE_CONTINUE; }
 
     GVariantIter *iter;
     g_variant_get(res, "(as)", &iter);
@@ -321,9 +356,10 @@ static gboolean poll_media(gpointer data)
         }
 
         if (title && title[0]) {
-            char *txt = g_strdup_printf("♫ %s — %s", artist, title);
+            char *txt = g_strdup_printf("%s — %s", artist, title);
             gtk_label_set_text(GTK_LABEL(media_label), txt);
             g_free(txt);
+            gtk_widget_show(media_box);
             found = TRUE;
         }
         if (title_v) g_variant_unref(title_v);
@@ -336,7 +372,7 @@ static gboolean poll_media(gpointer data)
     g_variant_unref(res);
     g_object_unref(bus);
     if (!found)
-        gtk_label_set_text(GTK_LABEL(media_label), "");
+        gtk_widget_hide(media_box);
     return G_SOURCE_CONTINUE;
 }
 
@@ -367,6 +403,8 @@ static gboolean on_app_label_press(GtkWidget *w, GdkEventButton *ev, gpointer da
     g_signal_connect(quit_i, "activate", G_CALLBACK(gtk_main_quit), NULL);
     gtk_menu_shell_append(GTK_MENU_SHELL(menu), quit_i);
 
+    g_signal_connect(menu, "selection-done", G_CALLBACK(gtk_widget_destroy), NULL);
+
     gtk_widget_show_all(menu);
     gtk_menu_popup_at_pointer(GTK_MENU(menu), (GdkEvent *)ev);
     return TRUE;
@@ -378,27 +416,49 @@ static void set_strut(GtkWidget *win)
 {
     GdkWindow *gdk_win = gtk_widget_get_window(win);
     if (!gdk_win) return;
-    guint32 xid = gdk_x11_window_get_xid(gdk_win);
+
+    Display *xdisplay = GDK_WINDOW_XDISPLAY(gdk_win);
+    Window xid = gdk_x11_window_get_xid(gdk_win);
+
     GdkRectangle geo;
     gdk_screen_get_monitor_geometry(gdk_screen_get_default(), 0, &geo);
 
-    char xid_str[32];
-    snprintf(xid_str, sizeof(xid_str), "%u", xid);
+    /* Use the bar's real allocated height, not a guessed constant -- theme
+       padding on buttons/labels can make the bar render taller than the
+       28px we asked for, and a strut smaller than the real bar lets other
+       windows poke into the difference. */
+    int bar_height = gtk_widget_get_allocated_height(win);
+    if (bar_height <= 0) bar_height = 28; /* fallback before first allocation */
 
-    char partial[256];
-    snprintf(partial, sizeof(partial),
-        "0,0,28,0, 0,0,0,0, %d,%d, 0,0",
-        geo.x, geo.x + geo.width - 1);
+    /* left, right, top, bottom */
+    long strut[4] = { 0, 0, bar_height, 0 };
 
-    char *c1 = g_strdup_printf("xprop -id %s -f _NET_WM_STRUT_PARTIAL 32c -set _NET_WM_STRUT_PARTIAL '%s'", xid_str, partial);
-    char *c2 = g_strdup_printf("xprop -id %s -f _NET_WM_STRUT 32c -set _NET_WM_STRUT '0,0,28,0'", xid_str);
-    g_spawn_command_line_async(c1, NULL);
-    g_spawn_command_line_async(c2, NULL);
-    g_free(c1);
-    g_free(c2);
+    /* left, right, top, bottom,
+       left_start_y, left_end_y, right_start_y, right_end_y,
+       top_start_x, top_end_x, bottom_start_x, bottom_end_x */
+    long strut_partial[12] = {
+        0, 0, bar_height, 0,
+        0, 0, 0, 0,
+        geo.x, geo.x + geo.width - 1,
+        0, 0
+    };
+
+    Atom strut_atom = XInternAtom(xdisplay, "_NET_WM_STRUT", False);
+    Atom strut_partial_atom = XInternAtom(xdisplay, "_NET_WM_STRUT_PARTIAL", False);
+
+    XChangeProperty(xdisplay, xid, strut_atom, XA_CARDINAL, 32,
+                     PropModeReplace, (unsigned char *)strut, 4);
+    XChangeProperty(xdisplay, xid, strut_partial_atom, XA_CARDINAL, 32,
+                     PropModeReplace, (unsigned char *)strut_partial, 12);
 }
 
 static void on_map(GtkWidget *win, gpointer data) { set_strut(win); }
+
+static void on_size_allocate(GtkWidget *win, GdkRectangle *alloc, gpointer data)
+{
+    if (gtk_widget_get_mapped(win))
+        set_strut(win);
+}
 
 static void on_realize(GtkWidget *win, gpointer data)
 {
@@ -442,6 +502,7 @@ int main(int argc, char **argv)
 
     g_signal_connect(win, "realize", G_CALLBACK(on_realize), NULL);
     g_signal_connect(win, "map", G_CALLBACK(on_map), NULL);
+    g_signal_connect(win, "size-allocate", G_CALLBACK(on_size_allocate), NULL);
     g_signal_connect(win, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
     GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
@@ -475,24 +536,31 @@ int main(int argc, char **argv)
     gtk_box_pack_start(GTK_BOX(right), tray_box, FALSE, FALSE, 0);
     sni_host_init(tray_box);
 
-    /* Battery */
-    battery_label = gtk_label_new("🔋\xEF\xB8\x8E --");
-    gtk_box_pack_start(GTK_BOX(right), battery_label, FALSE, FALSE, 0);
+    /* Battery: themed icon + percentage label */
+    GtkWidget *battery_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+    battery_icon = themed_icon("battery-missing-symbolic");
+    battery_label = gtk_label_new("--");
+    gtk_box_pack_start(GTK_BOX(battery_box), battery_icon, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(battery_box), battery_label, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(right), battery_box, FALSE, FALSE, 0);
 
     /* Network */
-    network_btn = gtk_button_new_with_label("📶\xEF\xB8\x8E");
-    gtk_button_set_relief(GTK_BUTTON(network_btn), GTK_RELIEF_NONE);
-    g_signal_connect(network_btn, "clicked", G_CALLBACK(launch_network), NULL);
+    network_btn = themed_icon_button("network-wireless-symbolic", G_CALLBACK(launch_network));
     gtk_box_pack_start(GTK_BOX(right), network_btn, FALSE, FALSE, 0);
 
     /* Volume */
-    volume_btn = gtk_button_new_with_label("🔊\xEF\xB8\x8E");
-    gtk_button_set_relief(GTK_BUTTON(volume_btn), GTK_RELIEF_NONE);
-    g_signal_connect(volume_btn, "clicked", G_CALLBACK(launch_volume), NULL);
+    volume_btn = themed_icon_button("audio-volume-high-symbolic", G_CALLBACK(launch_volume));
     gtk_box_pack_start(GTK_BOX(right), volume_btn, FALSE, FALSE, 0);
 
+    /* Media: themed icon + track label, hidden when nothing is playing */
+    media_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+    media_icon = themed_icon("audio-x-generic-symbolic");
     media_label = gtk_label_new("");
-    gtk_box_pack_start(GTK_BOX(right), media_label, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(media_box), media_icon, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(media_box), media_label, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(right), media_box, FALSE, FALSE, 0);
+    gtk_widget_set_no_show_all(media_box, TRUE);
+    gtk_widget_hide(media_box);
 
     clock_label = gtk_label_new("");
     gtk_box_pack_end(GTK_BOX(right), clock_label, FALSE, FALSE, 0);

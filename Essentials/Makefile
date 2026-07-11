@@ -34,7 +34,7 @@ $(BUILD_DIR)/options: options.c | $(BUILD_DIR)
 	$(CC) $(GTK_CFLAGS) $(BASE_FLAGS) -o $@ $< $(GTK_LIBS)
 
 $(BUILD_DIR)/menu: menu.c sni_host.c | $(BUILD_DIR)
-	$(CC) $(GTK_CFLAGS) $(WNK_CFLAGS) $(DBUS_CFLAGS) $(BASE_FLAGS) -o $@ menu.c sni_host.c $(GTK_LIBS) $(WNK_LIBS) $(DBUS_LIBS)
+	$(CC) $(GTK_CFLAGS) $(X11_LIBS) $(X11_CFLAGS)  $(WNK_CFLAGS) $(DBUS_CFLAGS) $(BASE_FLAGS) -o $@ menu.c sni_host.c $(GTK_LIBS) $(WNK_LIBS) $(DBUS_LIBS)
 
 $(BUILD_DIR)/keyver: keyver.c | $(BUILD_DIR)
 	$(CC) $(GTK_CFLAGS) $(JSON_CFLAGS) $(X11_CFLAGS) $(BASE_FLAGS) -o $@ $< $(GTK_LIBS) $(JSON_LIBS) $(X11_LIBS)
