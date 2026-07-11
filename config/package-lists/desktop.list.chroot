@@ -2,6 +2,7 @@ openbox
 obconf
 lxappearance
 picom
+xserver-xorg-input-synaptics
 
 lightdm
 
