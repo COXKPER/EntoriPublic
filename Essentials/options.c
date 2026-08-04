@@ -1,145 +1,169 @@
 #include <gtk/gtk.h>
-#include <gdk/gdk.h>
-#include <glib.h>
-#include <stdio.h>
+#include <webkit2/webkit2.h>
+#include <gio/gio.h>
+#include <stdlib.h>
 #include <string.h>
 
-static void load_css(void)
-{
-    GtkCssProvider *p = gtk_css_provider_new();
-    gtk_css_provider_load_from_data(p,
-        "window {"
-        "  background-color: #1e1e1e;"
-        "  color: #ffffff;"
-        "  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;"
-        "}"
-        ".header-title {"
-        "  font-size: 18px; font-weight: 600; color: #ffffff; margin-bottom: 5px;"
-        "}"
-        ".header-subtitle {"
-        "  font-size: 13px; color: #98989d; margin-bottom: 15px;"
-        "}"
-        ".action-card {"
-        "  background-color: rgba(255,255,255,0.06);"
-        "  border-radius: 14px; padding: 8px;"
-        "  border: 1px solid rgba(255,255,255,0.1);"
-        "}"
-        "button.mac-btn {"
-        "  background-color: transparent; color: #ffffff;"
-        "  border-radius: 8px; padding: 12px;"
-        "  font-weight: 500; font-size: 14px; border: none;"
-        "}"
-        "button.mac-btn:hover { background-color: rgba(255,255,255,0.1); }"
-        ".btn-danger { color: #FF3B30; font-weight: 600; }"
-        ".btn-danger:hover { background-color: rgba(255,59,48,0.15); }"
-        ".btn-cancel {"
-        "  background-color: rgba(255,255,255,0.06); color: #0A84FF;"
-        "  font-weight: 600; border-radius: 12px; margin-top: 10px;"
-        "}"
-        ".btn-cancel:hover { background-color: rgba(255,255,255,0.12); }",
-        -1, NULL);
-    gtk_style_context_add_provider_for_screen(gdk_screen_get_default(),
-        GTK_STYLE_PROVIDER(p), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-    g_object_unref(p);
+static void make_transparent(GtkWidget *wv) {
+    GdkRGBA rgba = {0,0,0,0};
+    webkit_web_view_set_background_color(WEBKIT_WEB_VIEW(wv), &rgba);
 }
 
-static gboolean confirm(GtkWindow *parent, const char *text)
-{
-    GtkWidget *dialog = gtk_message_dialog_new(parent,
-        GTK_DIALOG_MODAL, GTK_MESSAGE_QUESTION, GTK_BUTTONS_YES_NO, "%s", text);
-    gint r = gtk_dialog_run(GTK_DIALOG(dialog));
-    gtk_widget_destroy(dialog);
-    return r == GTK_RESPONSE_YES;
+static void on_script_msg(WebKitUserContentManager *manager, WebKitJavascriptResult *js_result, gpointer window) {
+    JSCValue *val = webkit_javascript_result_get_js_value(js_result);
+    if (jsc_value_is_string(val)) {
+        gchar *cmd = jsc_value_to_string(val);
+        if (g_strcmp0(cmd, "shutdown") == 0) {
+            g_spawn_command_line_async("systemctl poweroff", NULL);
+            gtk_main_quit();
+        } else if (g_strcmp0(cmd, "restart") == 0) {
+            g_spawn_command_line_async("systemctl reboot", NULL);
+            gtk_main_quit();
+        } else if (g_strcmp0(cmd, "logout") == 0) {
+            g_spawn_command_line_async("openbox --exit", NULL);
+            gtk_main_quit();
+        } else if (g_strcmp0(cmd, "cancel") == 0) {
+            gtk_main_quit();
+        }
+        g_free(cmd);
+    }
 }
 
-static void on_shutdown(GtkWidget *btn, GtkWindow *parent)
-{
-    if (confirm(parent, "Are you sure you want to shut down your computer now?"))
-        g_spawn_command_line_async("systemctl poweroff", NULL);
-}
-
-static void on_restart(GtkWidget *btn, GtkWindow *parent)
-{
-    if (confirm(parent, "Are you sure you want to restart your computer now?"))
-        g_spawn_command_line_async("systemctl reboot", NULL);
-}
-
-static void on_logout(GtkWidget *btn, GtkWindow *parent)
-{
-    if (confirm(parent, "Are you sure you want to log out from system?"))
-        g_spawn_command_line_async("openbox --exit", NULL);
-}
-
-static void on_cancel(GtkWidget *btn, GtkWindow *win)
-{
-    gtk_main_quit();
-}
-
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     gtk_init(&argc, &argv);
-    load_css();
 
-    GtkWidget *win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_title(GTK_WINDOW(win), "Power Options");
-    gtk_window_set_default_size(GTK_WINDOW(win), 320, 360);
-    gtk_window_set_position(GTK_WINDOW(win), GTK_WIN_POS_CENTER);
-    gtk_window_set_resizable(GTK_WINDOW(win), FALSE);
-    gtk_window_set_type_hint(GTK_WINDOW(win), GDK_WINDOW_TYPE_HINT_DIALOG);
-    g_signal_connect(win, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    gtk_window_set_title(GTK_WINDOW(window), "Power Options");
+    
+    // Make window fullscreen and borderless to allow dimming the whole screen
+    gtk_window_set_decorated(GTK_WINDOW(window), FALSE);
+    gtk_window_fullscreen(GTK_WINDOW(window));
+    gtk_window_set_keep_above(GTK_WINDOW(window), TRUE);
+    gtk_window_set_skip_taskbar_hint(GTK_WINDOW(window), TRUE);
+    gtk_window_set_skip_pager_hint(GTK_WINDOW(window), TRUE);
 
-    GtkWidget *header = gtk_header_bar_new();
-    gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(header), TRUE);
-    gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(header), "close:");
-    gtk_header_bar_set_title(GTK_HEADER_BAR(header), "System");
-    gtk_window_set_titlebar(GTK_WINDOW(win), header);
+    // Make window transparent
+    GdkScreen *screen = gtk_widget_get_screen(window);
+    GdkVisual *visual = gdk_screen_get_rgba_visual(screen);
+    if (visual) {
+        gtk_widget_set_visual(window, visual);
+    }
+    gtk_widget_set_app_paintable(window, TRUE);
+    g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
-    GtkWidget *outer = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
-    gtk_widget_set_margin_top(outer, 20);
-    gtk_widget_set_margin_bottom(outer, 20);
-    gtk_widget_set_margin_start(outer, 30);
-    gtk_widget_set_margin_end(outer, 30);
-    gtk_container_add(GTK_CONTAINER(win), outer);
+    GtkWidget *webview = webkit_web_view_new();
+    make_transparent(webview);
+    gtk_container_add(GTK_CONTAINER(window), webview);
 
-    GtkWidget *title = gtk_label_new("Power Options");
-    gtk_style_context_add_class(gtk_widget_get_style_context(title), "header-title");
-    gtk_box_pack_start(GTK_BOX(outer), title, FALSE, FALSE, 0);
+    WebKitUserContentManager *mgr = webkit_web_view_get_user_content_manager(WEBKIT_WEB_VIEW(webview));
+    g_signal_connect(mgr, "script-message-received::appBridge", G_CALLBACK(on_script_msg), window);
+    webkit_user_content_manager_register_script_message_handler(mgr, "appBridge");
 
-    GtkWidget *subtitle = gtk_label_new("What do you want to do?");
-    gtk_style_context_add_class(gtk_widget_get_style_context(subtitle), "header-subtitle");
-    gtk_box_pack_start(GTK_BOX(outer), subtitle, FALSE, FALSE, 0);
+    const gchar *html_content = 
+        "<!DOCTYPE html>"
+        "<html>"
+        "<head>"
+        "  <style>"
+        "    body {"
+        "      margin: 0; padding: 0;"
+        "      background-color: rgba(0, 0, 0, 0.45);"
+        "      display: flex;"
+        "      justify-content: center;"
+        "      align-items: center;"
+        "      height: 100vh;"
+        "      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;"
+        "      -webkit-user-select: none;"
+        "      animation: fadeIn 0.3s ease-out;"
+        "    }"
+        "    @keyframes fadeIn {"
+        "      from { background-color: rgba(0,0,0,0); }"
+        "      to { background-color: rgba(0,0,0,0.45); }"
+        "    }"
+        "    @keyframes popIn {"
+        "      from { transform: scale(0.9); opacity: 0; }"
+        "      to { transform: scale(1); opacity: 1; }"
+        "    }"
+        "    .dialog {"
+        "      background-color: rgba(245, 245, 247, 0.85);"
+        "      border-radius: 14px;"
+        "      padding: 24px;"
+        "      width: 300px;"
+        "      text-align: center;"
+        "      box-shadow: 0 10px 40px rgba(0,0,0,0.3);"
+        "      backdrop-filter: blur(20px);"
+        "      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);"
+        "    }"
+        "    .title {"
+        "      font-size: 14px;"
+        "      font-weight: 600;"
+        "      margin-bottom: 8px;"
+        "      color: #1d1d1f;"
+        "    }"
+        "    .subtitle {"
+        "      font-size: 13px;"
+        "      color: #86868b;"
+        "      margin-bottom: 24px;"
+        "    }"
+        "    .btn-group {"
+        "      display: flex;"
+        "      flex-direction: column;"
+        "      gap: 1px;"
+        "      background-color: rgba(0, 0, 0, 0.1);"
+        "      border-radius: 10px;"
+        "      overflow: hidden;"
+        "      margin-bottom: 16px;"
+        "    }"
+        "    button {"
+        "      background-color: rgba(255, 255, 255, 0.6);"
+        "      border: none;"
+        "      padding: 12px;"
+        "      font-size: 14px;"
+        "      cursor: pointer;"
+        "      transition: background-color 0.1s;"
+        "      color: #1d1d1f;"
+        "      outline: none;"
+        "    }"
+        "    button:hover { background-color: rgba(255, 255, 255, 0.9); }"
+        "    button:active { background-color: rgba(0, 0, 0, 0.05); }"
+        "    .btn-danger { color: #ff3b30; font-weight: 500; }"
+        "    .btn-cancel {"
+        "      border-radius: 10px;"
+        "      background-color: rgba(255, 255, 255, 0.7);"
+        "      font-weight: 600;"
+        "      color: #007aff;"
+        "      width: 100%;"
+        "      border: 1px solid rgba(0, 0, 0, 0.05);"
+        "    }"
+        "    .btn-cancel:hover { background-color: rgba(255, 255, 255, 0.9); }"
+        "  </style>"
+        "</head>"
+        "<body>"
+        "  <div class='dialog'>"
+        "    <div class='title'>Are you sure you want to shut down your computer now?</div>"
+        "    <div class='subtitle'>Select an option to continue.</div>"
+        "    <div class='btn-group'>"
+        "      <button class='btn-danger' onclick='sendCmd(\"shutdown\")'>Shut Down</button>"
+        "      <button onclick='sendCmd(\"restart\")'>Restart</button>"
+        "      <button onclick='sendCmd(\"logout\")'>Log Out</button>"
+        "    </div>"
+        "    <button class='btn-cancel' onclick='sendCmd(\"cancel\")'>Cancel</button>"
+        "  </div>"
+        "  <script>"
+        "    function sendCmd(cmd) {"
+        "        window.webkit.messageHandlers.appBridge.postMessage(cmd);"
+        "    }"
+        "    // Close when clicking the dim background"
+        "    document.body.addEventListener('click', function(e) {"
+        "        if (e.target === document.body) sendCmd('cancel');"
+        "    });"
+        "  </script>"
+        "</body>"
+        "</html>";
 
-    GtkWidget *card = gtk_box_new(GTK_ORIENTATION_VERTICAL, 2);
-    gtk_style_context_add_class(gtk_widget_get_style_context(card), "action-card");
-    gtk_box_pack_start(GTK_BOX(outer), card, FALSE, FALSE, 10);
+    webkit_web_view_load_html(WEBKIT_WEB_VIEW(webview), html_content, NULL);
 
-    GtkWidget *shutdown_btn = gtk_button_new_with_label("Shut Down");
-    gtk_style_context_add_class(gtk_widget_get_style_context(shutdown_btn), "mac-btn");
-    gtk_style_context_add_class(gtk_widget_get_style_context(shutdown_btn), "btn-danger");
-    g_signal_connect(shutdown_btn, "clicked", G_CALLBACK(on_shutdown), win);
-    gtk_box_pack_start(GTK_BOX(card), shutdown_btn, TRUE, TRUE, 0);
-
-    gtk_box_pack_start(GTK_BOX(card), gtk_separator_new(GTK_ORIENTATION_HORIZONTAL), FALSE, FALSE, 0);
-
-    GtkWidget *restart_btn = gtk_button_new_with_label("Restart");
-    gtk_style_context_add_class(gtk_widget_get_style_context(restart_btn), "mac-btn");
-    g_signal_connect(restart_btn, "clicked", G_CALLBACK(on_restart), win);
-    gtk_box_pack_start(GTK_BOX(card), restart_btn, TRUE, TRUE, 0);
-
-    gtk_box_pack_start(GTK_BOX(card), gtk_separator_new(GTK_ORIENTATION_HORIZONTAL), FALSE, FALSE, 0);
-
-    GtkWidget *logout_btn = gtk_button_new_with_label("Log Out");
-    gtk_style_context_add_class(gtk_widget_get_style_context(logout_btn), "mac-btn");
-    g_signal_connect(logout_btn, "clicked", G_CALLBACK(on_logout), win);
-    gtk_box_pack_start(GTK_BOX(card), logout_btn, TRUE, TRUE, 0);
-
-    GtkWidget *cancel_btn = gtk_button_new_with_label("Cancel");
-    gtk_style_context_add_class(gtk_widget_get_style_context(cancel_btn), "mac-btn");
-    gtk_style_context_add_class(gtk_widget_get_style_context(cancel_btn), "btn-cancel");
-    g_signal_connect(cancel_btn, "clicked", G_CALLBACK(on_cancel), win);
-    gtk_box_pack_end(GTK_BOX(outer), cancel_btn, FALSE, FALSE, 0);
-
-    gtk_widget_show_all(win);
+    gtk_widget_show_all(window);
     gtk_main();
+
     return 0;
 }

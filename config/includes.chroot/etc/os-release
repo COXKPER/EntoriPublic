@@ -1,8 +1,8 @@
 NAME="Entori"
-VERSION="26.7 (Dragon Arctic)"
+VERSION="26.08 (Centrifuga)"
 ID=entori
 PRETTY_NAME="Entori"
-VERSION_ID="26.7"
+VERSION_ID="26.08"
 HOME_URL="https://fourvo.id"
 SUPPORT_URL="https://fourvo.id"
 BUG_REPORT_URL="https://fourvo.id"

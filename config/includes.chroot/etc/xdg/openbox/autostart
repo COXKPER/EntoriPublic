@@ -6,7 +6,7 @@ fi
 eval $(gnome-keyring-daemon --start --components=secrets,ssh,gpg)
 export SSH_AUTH_SOCK
 picom &
-/usr/essentials/menu &
+/usr/essentials/menu -nurl /usr/share/dsyl/menubar.html &
 /usr/essentials/keyver &
 /usr/essentials/mola/mola-desktop &
 lua /usr/core/init.lua &

@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ManiaPJ Navbar</title>
+  <!-- External Font Awesome Library for Fallback -->
+  <link rel="stylesheet" href="file:///usr/share/fant/css/all.min.css">
+  
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+
+    body {
+      background: transparent;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      padding-top: 10px;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* ═══ Ultra-Glossy Liquid Glass Bar ═══ */
+    .glass-bar {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      flex-shrink: 0;
+      min-width: 420px;
+      max-width: 94%;
+      border-radius: 22px;
+      isolation: isolate;
+      overflow: hidden;
+
+      background: rgba(20, 20, 20, 0.65);
+      -webkit-backdrop-filter: blur(35px) saturate(140%);
+      backdrop-filter: blur(35px) saturate(140%);
+
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.45s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+      
+      color: #fff;
+      font-size: 12px;
+      font-weight: 500;
+      
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .bar-hidden { transform: translateY(-100px); opacity: 0; pointer-events: none; }
+
+    .bar-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 6px;
+      height: 38px; padding: 0 14px; flex-shrink: 0; position: relative; z-index: 2;
+      transition: height 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ═══ 2050 Media Mode ═══ */
+    .glass-bar.media-active {
+      min-width: 480px;
+    }
+    .glass-bar.media-active .bar-row { height: 42px; }
+
+    /* ═══ Expanded panel ═══ */
+    .glass-bar.panel-open { border-radius: 24px; }
+    .expand-panel {
+      max-height: 0; overflow: hidden; opacity: 0; position: relative; z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease, padding 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+      padding: 0 16px;
+    }
+    .glass-bar.panel-open .expand-panel { max-height: 120px; opacity: 1; padding: 4px 16px 18px; }
+
+    /* Media Text & Controls */
+    .np-track { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.95); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 12px; }
+    .np-progress { width: 90%; height: 4px; border-radius: 4px; background: rgba(255,255,255,0.15); overflow: hidden; margin-bottom: 14px; }
+    .np-progress-fill { height: 100%; width: 45%; border-radius: 4px; background: #fff; position: relative; }
+    .np-progress-fill::after { content: ''; position: absolute; right: 0; top: -2px; width: 8px; height: 8px; background: #fff; border-radius: 50%; }
+    
+    .np-controls { display: flex; align-items: center; justify-content: center; gap: 28px; width: 100%; }
+    .np-controls button { background: transparent; border: none; color: rgba(255,255,255,0.8); font-size: 16px; cursor: pointer; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+    .np-controls button:hover { color: #fff; transform: scale(1.1); background: rgba(255,255,255,0.1); }
+    .np-controls button.np-play { font-size: 18px; width: 42px; height: 42px; color: #000; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.15); border: none; }
+    .np-controls button.np-play:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.2); transform: scale(1.05); }
+
+    /* Layout Sections */
+    .section-left, .section-center, .section-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; position: relative; z-index: 2; }
+    .section-center { flex-shrink: 1; min-width: 0; }
+
+    /* Icons */
+    .icon-box { font-size: 14px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: color 0.2s ease, text-shadow 0.2s ease; color: rgba(255,255,255,0.9); }
+    .icon-box img, .icon-box svg { width: 100%; height: 100%; object-fit: contain; filter: brightness(0) invert(1); }
+    .icon-box { overflow: hidden; white-space: nowrap; }
+    .status-item:hover .icon-box, .logo-btn:hover .icon-box { color: #fff; text-shadow: 0 0 8px rgba(255,255,255,0.5); }
+
+    /* Buttons & Typography */
+    .logo-btn, .status-item { background: transparent; border: none; color: rgba(255,255,255,0.95); cursor: pointer; padding: 4px 8px; border-radius: 8px; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease; }
+    .logo-btn:hover, .status-item:hover { background: rgba(255,255,255,0.15); box-shadow: 0 4px 12px rgba(0,0,0,0.1), inset 0 1px 1px rgba(255,255,255,0.3); }
+    .logo-btn:active, .status-item:active { transform: scale(0.92); }
+
+    /* App Active */
+    .app-title { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 13px; color: rgba(255,255,255,0.95); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; transition: opacity 0.3s ease, max-width 0.3s ease; }
+    .app-title.no-app { opacity: 0; max-width: 0; overflow: hidden; margin-left: 0; }
+    .app-icon-box { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; }
+    .app-icon-box img { width: 100%; height: 100%; object-fit: contain; }
+
+    /* Media Pill */
+    .media-pill { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.95); background: rgba(255,255,255,0.1); padding: 4px 14px; border-radius: 100px; border: 1px solid rgba(255,255,255,0.08); max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; transition: max-width 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease, padding 0.4s ease, border-width 0.4s ease, transform 0.3s ease; }
+    .media-pill:hover { background: rgba(255,255,255,0.15); transform: translateY(-1px); }
+    .media-pill.hidden { opacity: 0; transform: scale(0.9); max-width: 0; padding: 0; border-width: 0; margin: 0; gap: 0; pointer-events: none; }
+
+    .clock { font-weight: 600; font-size: 13px; font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }
+    .sep { width: 1.5px; height: 14px; background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100%); border-radius: 1px; flex-shrink: 0; }
+
+    /* ═══ Sensors Pill ═══ */
+    .sensor-pill {
+      display: flex; align-items: center; justify-content: center; gap: 4px;
+      height: 14px; border-radius: 7px; padding: 0; margin-left: 2px;
+      opacity: 0; width: 0; overflow: hidden; transition: opacity 0.3s ease, background 0.3s ease;
+    }
+    .sensor-pill.active { opacity: 1; padding: 0 6px; width: auto; margin-right: 4px;}
+    .sensor-pill .icon-box { width: 10px; height: 10px; color: #fff; filter: none; }
+    .sensor-pill i { font-size: 9px; }
+    
+    .sensor-cam { background: #34c759; box-shadow: 0 0 8px rgba(52,199,89,0.4); }
+    .sensor-mic { background: #ff9f0a; box-shadow: 0 0 8px rgba(255,159,10,0.4); }
+    .sensor-mix { background: linear-gradient(90deg, #34c759, #ff9f0a); box-shadow: 0 0 8px rgba(52,199,89,0.3), 0 0 8px rgba(255,159,10,0.3); }
+
+    .drag-region { -webkit-app-region: drag; }
+
+    /* Dynamic Island Panels */
+    .panel-content { display: none; width: 100%; flex-direction: column; align-items: center; }
+    
+    /* Clock Panel */
+    .dyn-time { font-size: 32px; font-weight: 300; letter-spacing: 2px; margin-bottom: 4px; }
+    .dyn-date { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.7); }
+
+    /* Volume Slider */
+    input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #ffffff; cursor: pointer; margin-top: -6px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+    input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: rgba(255,255,255,0.2); border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+  <div class="glass-bar drag-region" id="glass-bar">
+
+    <!-- TOP ROW -->
+    <div class="bar-row">
+      <!-- LEFT -->
+      <div class="section-left">
+        <button class="logo-btn" onclick="sendToC('open_main_menu')">
+          <span class="icon-box" id="logo-icon">{{icon.open-menu-symbolic}}</span>
+        </button>
+      </div>
+
+      <!-- CENTER -->
+      <div class="section-center">
+        <div class="media-pill hidden" id="media-info" onclick="togglePanel('music')">
+          <span class="icon-box" id="media-icon" style="display: none; margin-right:4px;"></span>
+          <img id="media-pill-art" src="" style="width: 18px; height: 18px; border-radius: 4px; object-fit: cover; display: none; margin-right: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">
+          <span id="media-text">{{MEDIA_TITLE}}</span>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="section-right">
+        <div class="status-item" onclick="window.exec('/usr/essentials/networkgui')">
+          <span class="icon-box" id="net-icon">{{icon.network-wireless-symbolic}}</span>
+        </div>
+        <div class="status-item" onclick="togglePanel('volume')">
+          <span class="icon-box" id="vol-icon">{{icon.audio-volume-high-symbolic}}</span>
+        </div>
+        <div class="status-item" id="bright-item" onclick="togglePanel('brightness')" style="display: none;">
+          <span class="icon-box" id="bright-icon">{{icon.display-brightness-symbolic}}</span>
+        </div>
+        <div class="status-item" id="bat-item" onclick="togglePanel('battery')" style="display: none;">
+          <span class="icon-box" id="bat-icon">{{icon.battery-good-symbolic}}</span>
+          <span id="bat-level">{{BATTERY_LEVEL}}</span>
+        </div>
+        <span class="sep"></span>
+        <div class="sensor-pill" id="sensor-pill">
+          <span class="icon-box" id="sensor-cam-icon" style="display:none;"><i class="fa-solid fa-video"></i></span>
+          <span class="icon-box" id="sensor-mic-icon" style="display:none;"><i class="fa-solid fa-microphone"></i></span>
+        </div>
+        <div class="status-item clock" id="clock" onclick="togglePanel('clock')">{{CURRENT_TIME}}</div>
+      </div>
+    </div>
+
+    <!-- EXPANDED PANEL (Dynamic Island) -->
+    <div class="expand-panel" id="expand-panel">
+      <!-- Music -->
+      <div id="panel-music" class="panel-content" style="flex-direction: row; gap: 16px; align-items: center; padding: 12px 16px;">
+        <img id="media-art" src="" style="width: 64px; height: 64px; border-radius: 12px; object-fit: cover; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+        <div style="display: flex; flex-direction: column; flex: 1; min-width: 0;">
+          <div class="np-track" id="panel-track-name" style="margin-bottom: 8px;">{{MEDIA_TITLE}}</div>
+          <input type="range" id="media-progress" min="0" max="1000" value="0" onchange="seekMedia(this.value)" onmousedown="window.isSeeking=true" onmouseup="window.isSeeking=false" style="margin-bottom: 12px; width: 100%;">
+          <div class="np-controls" style="justify-content: flex-start; gap: 20px;">
+            <button id="btn-prev" onclick="sendToC('media_prev')"><i class="fa-solid fa-backward-step"></i></button>
+            <button id="btn-play" class="np-play" style="width:34px; height:34px; font-size:14px;" onclick="sendToC('media_play_pause')"><i class="fa-solid fa-pause"></i></button>
+            <button id="btn-next" onclick="sendToC('media_next')"><i class="fa-solid fa-forward-step"></i></button>
+          </div>
+        </div>
+      </div>
+      <!-- Clock -->
+      <div id="panel-clock" class="panel-content">
+        <div class="dyn-time" id="dyn-time">--:--:--</div>
+        <div class="dyn-date" id="dyn-date">----</div>
+      </div>
+      <!-- Volume -->
+      <div id="panel-volume" class="panel-content" style="padding: 10px 0;">
+        <div style="display:flex; align-items:center; width:100%; gap: 14px; max-width: 300px;">
+          <span class="icon-box"><i class="fa-solid fa-volume-high"></i></span>
+          <input type="range" id="vol-slider" min="0" max="100" value="50" onchange="sendToC('set_volume', this.value)" oninput="document.getElementById('vol-slider-pct').textContent = this.value + '%'" style="flex:1;">
+          <span id="vol-slider-pct" style="font-size:12px; width:30px;">50%</span>
+        </div>
+      </div>
+      <!-- Brightness -->
+      <div id="panel-brightness" class="panel-content" style="padding: 16px;">
+        <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
+          <span class="icon-box" style="font-size: 18px;">{{icon.display-brightness-symbolic}}</span>
+          <input type="range" min="1" max="100" value="50" id="bright-slider" style="flex: 1;" oninput="sendToC('set_brightness', this.value); document.getElementById('bright-slider-pct').textContent = this.value + '%'">
+          <span id="bright-slider-pct" style="width: 40px; text-align: right; font-weight: 600;">50%</span>
+        </div>
+      </div>
+      
+      <!-- Battery -->
+      <div id="panel-battery" class="panel-content" style="padding: 10px 0;">
+        <div style="display:flex; align-items:center; gap: 12px; margin-bottom: 6px;">
+          <span class="icon-box" id="bat-dyn-icon" style="transform: scale(1.5);"></span>
+          <div style="font-size: 24px; font-weight:500;" id="bat-dyn-level">--%</div>
+        </div>
+        <div style="font-size: 13px; color: rgba(255,255,255,0.7);" id="bat-dyn-status">Status Unknown</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /* ═══ UI Interactions ═══ */
+    let currentPanel = null;
+    let panelTimeout = null; 
+
+    function togglePanel(type) {
+      if (panelTimeout) {
+        clearTimeout(panelTimeout);
+        panelTimeout = null;
+      }
+
+      if (currentPanel === type) {
+        document.getElementById('glass-bar').classList.remove('panel-open');
+        document.getElementById('glass-bar').classList.add('animating-close');
+        currentPanel = null;
+        sendToC('set_panel_open', 'false');
+        
+        panelTimeout = setTimeout(() => {
+          document.querySelectorAll('.panel-content').forEach(e => e.style.display = 'none');
+          document.getElementById('glass-bar').classList.remove('animating-close');
+          let w = document.getElementById('glass-bar').scrollWidth + 30;
+          let h = document.getElementById('glass-bar').scrollHeight + 30;
+          sendToC('resize_bar', w + "," + h);
+        }, 450); // Matches the max-height CSS transition duration
+        return;
+      }
+      
+      document.getElementById('glass-bar').classList.remove('animating-close');
+      
+      document.querySelectorAll('.panel-content').forEach(e => e.style.display = 'none');
+      document.getElementById('panel-' + type).style.display = 'flex';
+      document.getElementById('glass-bar').classList.add('panel-open');
+      currentPanel = type;
+      sendToC('set_panel_open', 'true');
+    }
+
+    function seekMedia(val) {
+      if (!window.currentMedia || !window.currentMedia.trackId) return;
+      let pos = (val / 1000) * window.currentMedia.length;
+      sendToC('media_seek', Math.floor(pos) + '|' + window.currentMedia.trackId + '|' + window.currentMedia.playerName);
+    }
+
+    /* ═══ IPC: Frontend to Backend ═══ */
+    function sendToC(action, payload) {
+      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.appBridge) {
+        window.webkit.messageHandlers.appBridge.postMessage(JSON.stringify({action:action, payload:payload||""}));
+      } else {
+        console.log(`[IPC Mock] Action: ${action} | Payload: ${payload || "none"}`);
+      }
+    }
+    
+    // Command executor alias
+    window.exec = function(cmd) { sendToC('exec', cmd); };
+
+    const barElement = document.getElementById('glass-bar');
+    let resizeTimeout = null; 
+
+    const resizeObserver = new ResizeObserver(entries => {
+      if (resizeTimeout) {
+        clearTimeout(resizeTimeout);
+      }
+      resizeTimeout = setTimeout(() => {
+        if (!barElement.classList.contains('animating-close')) {
+          let w = barElement.scrollWidth + 30;
+          let h = barElement.scrollHeight + 30;
+          sendToC('resize_bar', w + "," + h);
+        }
+      }, 50); 
+    });
+    resizeObserver.observe(barElement);
+
+    /* ═══ IPC: Backend to Frontend API ═══ */
+    window.NavbarAPI = {
+      barShow: function() { barElement.classList.remove('bar-hidden'); },
+      barHide: function() { barElement.classList.add('bar-hidden'); },
+      
+      updateClock: function(t) { document.getElementById('clock').textContent = t; },
+      
+      updateBattery: function(level, iconHtml, status, isLaptop) { 
+        var batItem = document.getElementById('bat-item');
+        var brightItem = document.getElementById('bright-item');
+        
+        if (isLaptop === 'true') {
+          batItem.style.display = 'flex';
+          brightItem.style.display = 'flex';
+        } else {
+          batItem.style.display = 'none';
+          brightItem.style.display = 'none';
+        }
+        
+        document.getElementById('bat-level').textContent = level; 
+        document.getElementById('bat-dyn-level').textContent = level;
+        if (iconHtml) {
+          document.getElementById('bat-icon').innerHTML = iconHtml;
+          document.getElementById('bat-dyn-icon').innerHTML = iconHtml;
+        }
+        if (status) document.getElementById('bat-dyn-status').textContent = status;
+      },
+      
+      updateBrightness: function(val) {
+        var slider = document.getElementById('bright-slider');
+        var pct = document.getElementById('bright-slider-pct');
+        if (slider && document.activeElement !== slider) {
+          slider.value = val;
+        }
+        if (pct) pct.textContent = val + "%";
+      },
+      
+      updateMedia: function(data) {
+        var box = document.getElementById('media-info');
+        var panelTrack = document.getElementById('panel-track-name');
+        var artImg = document.getElementById('media-art');
+        var pillArtImg = document.getElementById('media-pill-art');
+        
+        var playBtn = document.getElementById('btn-play');
+        var prevBtn = document.getElementById('btn-prev');
+        var nextBtn = document.getElementById('btn-next');
+        var prog = document.getElementById('media-progress');
+        
+        if (data && data.title && data.title.trim() !== "") {
+          window.currentMedia = data;
+          document.getElementById('media-text').textContent = data.trackName || data.title;
+          panelTrack.textContent = data.title;
+          
+          if (data.artUrl && data.artUrl.trim() !== "") {
+            artImg.src = data.artUrl;
+            pillArtImg.src = data.artUrl;
+            artImg.style.display = 'block';
+            pillArtImg.style.display = 'block';
+          } else {
+            artImg.style.display = 'none';
+            pillArtImg.style.display = 'none';
+          }
+          
+          if (data.status === 'Playing') {
+            playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+            if (data.artUrl) { pillArtImg.style.opacity = '1'; }
+          } else {
+            playBtn.innerHTML = '<i class="fa-solid fa-play" style="margin-left: 2px;"></i>';
+            if (data.artUrl) { pillArtImg.style.opacity = '0.5'; }
+          }
+          
+          if (data.canPrev === 'true' || data.canPrev === true) { prevBtn.style.opacity = '1'; prevBtn.style.pointerEvents = 'auto'; }
+          else { prevBtn.style.opacity = '0.3'; prevBtn.style.pointerEvents = 'none'; }
+          
+          if (data.canNext === 'true' || data.canNext === true) { nextBtn.style.opacity = '1'; nextBtn.style.pointerEvents = 'auto'; }
+          else { nextBtn.style.opacity = '0.3'; nextBtn.style.pointerEvents = 'none'; }
+          
+          if (!window.isSeeking && data.length > 0) {
+            prog.value = (data.position / data.length) * 1000;
+          }
+          
+          box.classList.remove('hidden');
+          barElement.classList.add('media-active');
+        } else {
+          window.currentMedia = null;
+          box.classList.add('hidden');
+          barElement.classList.remove('media-active');
+          
+          // FIX: Do NOT indiscriminately strip 'panel-open' here anymore.
+          // This was forcing the bar to shrink (causing resize_bar 68 & on_leave events)
+          // every time MPRIS polling returned empty while you were viewing other panels!
+          if (currentPanel === 'music') {
+            barElement.classList.remove('panel-open');
+            currentPanel = null;
+            sendToC('set_panel_open', 'false');
+            document.querySelectorAll('.panel-content').forEach(e => e.style.display = 'none'); 
+          }
+        }
+      },
+
+      updateSensors: function(cam, mic) {
+        var pill = document.getElementById('sensor-pill');
+        var cIcon = document.getElementById('sensor-cam-icon');
+        var mIcon = document.getElementById('sensor-mic-icon');
+        
+        var isCam = (cam === "true");
+        var isMic = (mic === "true");
+        
+        pill.className = 'sensor-pill';
+        if (isCam && isMic) {
+            pill.classList.add('active', 'sensor-mix');
+            cIcon.style.display = 'inline-flex';
+            mIcon.style.display = 'inline-flex';
+        } else if (isCam) {
+            pill.classList.add('active', 'sensor-cam');
+            cIcon.style.display = 'inline-flex';
+            mIcon.style.display = 'none';
+        } else if (isMic) {
+            pill.classList.add('active', 'sensor-mic');
+            cIcon.style.display = 'none';
+            mIcon.style.display = 'inline-flex';
+        } else {
+            pill.classList.remove('active');
+        }
+      },
+
+      updateNetworkIcon: function(h) { if(h) document.getElementById('net-icon').innerHTML = h; },
+      
+      updateVolumeIcon: function(iconHtml) {
+        if(iconHtml) document.getElementById('vol-icon').innerHTML = iconHtml;
+      },
+      
+      updateVolumeSlider: function(val) {
+        var slider = document.getElementById('vol-slider');
+        var pct = document.getElementById('vol-slider-pct');
+        if (slider && document.activeElement !== slider) {
+          slider.value = val;
+        }
+        if (pct) pct.textContent = val + "%";
+      }
+    };
+
+    /* ═══ Check Initial State (Hide unused elements if backend left them as tags) ═══ */
+    setTimeout(() => {
+      if (document.getElementById('media-text').textContent === '{{MEDIA_TITLE}}') {
+        window.NavbarAPI.updateMedia("");
+      }
+    }, 50);
+
+    /* ═══ DUAL SUPPORT: 5 SECOND FALLBACK SCRIPT ═══ */
+    function startLocalClock() {
+      function tick() {
+        var now = new Date();
+        var hh = String(now.getHours()).padStart(2,'0');
+        var mm = String(now.getMinutes()).padStart(2,'0');
+        var ss = String(now.getSeconds()).padStart(2,'0');
+        
+        var clockEl = document.getElementById('clock');
+        if (clockEl) clockEl.textContent = hh + ':' + mm;
+        
+        var dTime = document.getElementById('dyn-time');
+        if (dTime) dTime.textContent = hh + ':' + mm + ':' + ss;
+        
+        var dDate = document.getElementById('dyn-date');
+        if (dDate) {
+          var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+          dDate.textContent = now.toLocaleDateString('en-US', options);
+        }
+        
+        setTimeout(tick, 1000 - now.getMilliseconds());
+      }
+      tick();
+    }
+    startLocalClock();
+
+    setTimeout(() => {
+      const batLevel = document.getElementById('bat-level');
+      
+      if (batLevel && batLevel.textContent.includes('{{BATTERY_LEVEL}}')) {
+        console.warn("Backend injection not detected after 5 seconds. Enabling Mock Browser Mode...");
+        
+        document.getElementById('logo-icon').innerHTML = '<i class="fa-brands fa-linux"></i>';
+        window.NavbarAPI.updateNetworkIcon('<i class="fa-solid fa-wifi"></i>');
+        window.NavbarAPI.updateVolumeIcon('<i class="fa-solid fa-volume-high"></i>');
+        
+        window.NavbarAPI.updateBattery('78%', '<i class="fa-solid fa-battery-three-quarters"></i>');
+        window.NavbarAPI.updateMedia({ title: "Cyberpunk 2077 - V's Theme", status: 'Playing', canPrev: true, canNext: true, position: 0, length: 1 });
+      }
+    }, 5000);
+
+    /* ═══ Production Lockdowns ═══ */
+    window.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+    document.addEventListener('dragstart', function(e){ e.preventDefault(); });
+  </script>
+</body>
+</html>
