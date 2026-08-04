@@ -36,6 +36,7 @@ gnome-keyring
 seahorse
 falkon
 flameshot
-libpulse0
 libnm0
-libdbusmenu-gtk3-4
+libwebkit2gtk-4.0-37
+libwnck-3-0
+libjson-glib-1.0-0
